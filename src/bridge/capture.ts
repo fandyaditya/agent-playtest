@@ -6,7 +6,7 @@
  * mutated. Every capture window is closed by `endCapture` in a `finally`.
  */
 
-import { capabilityError, GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, capabilityError } from "../shared/errors.ts";
 import type { CaptureViewName } from "../shared/types.ts";
 import type { ThreeAdapter } from "./adapters/three.ts";
 import type { CameraLike, Object3DLike, WebGLRendererLike } from "./adapters/three-types.ts";
@@ -63,7 +63,7 @@ export function beginCapture(
   const warnings: string[] = [];
   const plan = view === "current" ? null : adapter.viewPlan(object, view);
   if (view !== "current" && !plan) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "CAPABILITY_UNAVAILABLE",
       message: `Cannot compute framing for view "${view}": the subject has no measurable geometry bounds.`,
       missing: ["geometry.bounds"],
@@ -103,7 +103,7 @@ export function beginCapture(
       bound(scene, inspectionCamera);
     } catch (error) {
       renderer.render = originalRender;
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "CAPABILITY_UNAVAILABLE",
         message: `The renderer rejected an inspection render: ${error instanceof Error ? error.message : String(error)}`,
         missing: ["capture.object"],
@@ -141,7 +141,10 @@ export function beginCapture(
   return {
     token,
     view,
-    subject: { name: adapter.nameOf(object), ...(id ? { selector: `gameprob:id=${id}` } : {}) },
+    subject: {
+      name: adapter.nameOf(object),
+      ...(id ? { selector: `agent-playtest:id=${id}` } : {}),
+    },
     frame,
     warnings,
   };

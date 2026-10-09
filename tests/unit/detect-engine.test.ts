@@ -7,7 +7,7 @@ import { detectEngine } from "../../src/cli/detect-engine.ts";
 let root = "";
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "gameprob-engine-"));
+  root = mkdtempSync(join(tmpdir(), "agent-playtest-engine-"));
 });
 
 afterEach(() => {
@@ -69,7 +69,7 @@ describe("engine detection from source", () => {
   it("ignores generated and vendored directories", () => {
     writeSource("node_modules/three/index.js", 'import "three";\n');
     writeSource("dist/bundle.js", 'import "three";\n');
-    writeSource(".gameprob/notes.js", 'import "phaser";\n');
+    writeSource(".agent-playtest/notes.js", 'import "phaser";\n');
     expect(detectEngine(root).hint).toBe("unknown");
   });
 

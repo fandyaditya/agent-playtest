@@ -2,7 +2,7 @@
  * Static server for the example game.
  *
  * No bundler: `/vendor/three/*` is served straight from node_modules and
- * `/vendor/gameprob/*` from the built package, so the example exercises exactly
+ * `/vendor/agent-playtest/*` from the built package, so the example exercises exactly
  * the artifact that ships. Relative imports inside those files (for example
  * `three.module.js` → `three.core.js`) keep working because the whole directory
  * is reachable.
@@ -25,7 +25,7 @@ const PAGES = {
 
 const VENDOR = [
   { prefix: "/vendor/three/", base: join(repoRoot, "node_modules", "three", "build") },
-  { prefix: "/vendor/gameprob/", base: join(repoRoot, "dist") },
+  { prefix: "/vendor/agent-playtest/", base: join(repoRoot, "dist") },
 ];
 
 function resolveRoute(pathname) {
@@ -85,7 +85,7 @@ const invokedDirectly =
 if (invokedDirectly) {
   const port = Number(process.env.PORT ?? 5199);
   const started = await startExampleServer(port);
-  console.log(`Example game listening on ${started.url}?gameprob=1`);
+  console.log(`Example game listening on ${started.url}?agent-playtest=1`);
   const shutdown = async () => {
     await started.close();
     process.exit(0);

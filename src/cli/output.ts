@@ -6,7 +6,7 @@
  * same envelope the daemon returns.
  */
 
-import { EXIT_CODES, type GameProbError } from "../shared/errors.ts";
+import { type AgentPlaytestError, EXIT_CODES } from "../shared/errors.ts";
 import { PROTOCOL_VERSION, type ResultEnvelope } from "../shared/types.ts";
 
 export interface EmitOptions {
@@ -53,7 +53,7 @@ export class Output {
 
   failure(
     command: string,
-    error: GameProbError,
+    error: AgentPlaytestError,
     options: EmitOptions = { json: this.#json },
   ): number {
     const exitCode = EXIT_CODES[error.code] ?? 1;
@@ -117,7 +117,7 @@ interface InitData {
 }
 
 function renderInit(data: InitData): string[] {
-  const lines = [`GameProb initialized: ${data.workspace}`];
+  const lines = [`Agent Playtest initialized: ${data.workspace}`];
   if (data.engineHint !== "unknown") {
     lines.push(`Engine hint from project evidence: ${data.engineHint} (a hint, not a live check)`);
   } else {
@@ -156,7 +156,7 @@ function renderOpen(data: OpenData): string[] {
   );
   if (!data.bridge.connected) {
     lines.push(
-      "Tip: run gameprob init and connect the development-only bridge for scene inspection.",
+      "Tip: run agent-playtest init and connect the development-only bridge for scene inspection.",
     );
   }
   return lines;
@@ -293,6 +293,7 @@ interface CloseData {
 }
 
 function renderClose(data: CloseData): string[] {
-  if (data.alreadyClosed) return ["No active GameProb session for this project (already closed)."];
+  if (data.alreadyClosed)
+    return ["No active Agent Playtest session for this project (already closed)."];
   return [`Closed session ${data.sessionId ?? ""}`.trim()];
 }

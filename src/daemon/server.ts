@@ -8,7 +8,7 @@
 
 import { chmodSync, rmSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
-import { GameProbError, toGameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, toAgentPlaytestError } from "../shared/errors.ts";
 import {
   actParamsSchema,
   captureParamsSchema,
@@ -135,7 +135,7 @@ export class DaemonServer {
         error: {
           code: "IPC_PROTOCOL_MISMATCH",
           message: `This daemon speaks IPC protocol ${PROTOCOL_VERSION}; the client asked for ${request.protocolVersion}.`,
-          hint: "Run `gameprob close` and retry so a version-matched daemon starts.",
+          hint: "Run `agent-playtest close` and retry so a version-matched daemon starts.",
         },
         warnings: [],
         durationMs: 0,
@@ -165,7 +165,7 @@ export class DaemonServer {
       const typed =
         error && typeof error === "object" && "issues" in error
           ? parseZodError(error, request.command)
-          : toGameProbError(error);
+          : toAgentPlaytestError(error);
       this.#options.log(`Command ${request.command} failed: ${typed.code} ${typed.message}`);
       this.#send(socket, {
         protocolVersion: PROTOCOL_VERSION,
@@ -220,7 +220,7 @@ export class DaemonServer {
         return { data: { closed: true, sessionId: session.sessionId }, warnings: [] };
       }
       default:
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "INVALID_ARGUMENT",
           message: `Unknown command "${String(request.command)}".`,
         });
@@ -235,7 +235,7 @@ export class DaemonServer {
         new Promise<never>((_, reject) => {
           timer = setTimeout(() => {
             reject(
-              new GameProbError({
+              new AgentPlaytestError({
                 code: "INTERNAL_ERROR",
                 message: `The command exceeded the ${this.#commandTimeoutMs}ms daemon timeout.`,
                 hint: "Retry, or raise session.idleTimeoutMs / check for a hung page.",
@@ -266,17 +266,17 @@ export class DaemonServer {
   }
 }
 
-export function parseZodError(error: unknown, command: string): GameProbError {
+export function parseZodError(error: unknown, command: string): AgentPlaytestError {
   if (error && typeof error === "object" && "issues" in error) {
     const issues = (error as { issues: Array<{ path: Array<string | number>; message: string }> })
       .issues;
     const detail = issues
       .map((issue) => `${issue.path.join(".") || "<params>"}: ${issue.message}`)
       .join("; ");
-    return new GameProbError({
+    return new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Invalid parameters for "${command}": ${detail}`,
     });
   }
-  return toGameProbError(error);
+  return toAgentPlaytestError(error);
 }

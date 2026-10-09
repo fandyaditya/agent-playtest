@@ -1,5 +1,5 @@
 /**
- * `gameprob/test` — the Playwright Test fixture for project-authored game tests.
+ * `agent-playtest/test` — the Playwright Test fixture for project-authored game tests.
  *
  * Tests import `{ test, expect }` from here and receive a `game` fixture that
  * drives the game through the SAME driver the CLI uses, so a check written by
@@ -13,7 +13,7 @@ import { dirname, isAbsolute, join, relative } from "node:path";
 import { test as base, expect, type Page, type TestInfo } from "@playwright/test";
 import { type ActRequest, BrowserGameDriver, type ConsoleEntry } from "../browser/driver.ts";
 import { loadProjectConfig } from "../shared/config.ts";
-import { GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError } from "../shared/errors.ts";
 import { projectPaths, resolveProjectRoot } from "../shared/paths.ts";
 import type { ResolvedConfig } from "../shared/schemas.ts";
 import type {
@@ -67,17 +67,17 @@ export class GameSession {
   }
 
   static async create(page: Page, testInfo: TestInfo): Promise<GameSession> {
-    const projectRoot = resolveProjectRoot(process.env.GAMEPROB_PROJECT ?? process.cwd());
+    const projectRoot = resolveProjectRoot(process.env.AGENT_PLAYTEST_PROJECT ?? process.cwd());
     const paths = projectPaths(projectRoot);
     if (!existsSync(paths.configFile)) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "PROJECT_NOT_INITIALIZED",
-        message: `No GameProb workspace found at ${paths.workspace}.`,
-        hint: "Run `gameprob init` before running project tests.",
+        message: `No Agent Playtest workspace found at ${paths.workspace}.`,
+        hint: "Run `agent-playtest init` before running project tests.",
       });
     }
     const config = loadProjectConfig(projectRoot);
-    const runDir = process.env.GAMEPROB_RUN_DIR ?? paths.outputDir;
+    const runDir = process.env.AGENT_PLAYTEST_RUN_DIR ?? paths.outputDir;
     const driver = new BrowserGameDriver({
       projectRoot,
       config,
@@ -86,8 +86,8 @@ export class GameSession {
     });
     const session = new GameSession({ driver, projectRoot, config, runDir, testInfo });
 
-    const url = process.env.GAMEPROB_URL ?? config.game.url;
-    if (url && process.env.GAMEPROB_NO_AUTO_OPEN !== "1") {
+    const url = process.env.AGENT_PLAYTEST_URL ?? config.game.url;
+    if (url && process.env.AGENT_PLAYTEST_NO_AUTO_OPEN !== "1") {
       await session.open(url);
     }
     return session;
@@ -214,7 +214,7 @@ export class GameSession {
   }
 
   #annotate(message: string): void {
-    this.#testInfo.annotations.push({ type: "gameprob", description: message });
+    this.#testInfo.annotations.push({ type: "agent-playtest", description: message });
   }
 }
 
@@ -233,7 +233,7 @@ export const test = base.extend<GameFixtures>({
   },
 });
 
-export { GameProbError } from "../shared/errors.ts";
+export { AgentPlaytestError } from "../shared/errors.ts";
 export type {
   ActionResult,
   CaptureResult,

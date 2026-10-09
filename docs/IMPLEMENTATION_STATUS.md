@@ -2,22 +2,26 @@
 
 ## Last verified state
 
-- **Revision**: `4c505a8` on `main`, pushed to
+- **Revision**: `9e7bc21` on `main`, pushed to
   `git@github.com:fandyaditya/agent-playtest.git`
 - **Environment**: Alpine Linux 3.24.2 (musl), Node v24.18.1, pnpm 10.34.6,
   system Chromium 152 with `chromium-swiftshader`, **1 visible CPU** on a shared
   host (load average 18–38 during this work).
-- **Last passing checks** (all on the revision above):
+- **Package names**: the tool is `agent-playtest` everywhere — package, binary,
+  `.agent-playtest/` workspace, `~/.agent-playtest/` home, `AGENT_PLAYTEST_*`
+  environment variables, `agent-playtest/bridge` / `agent-playtest/test` imports,
+  and the `agent-playtest:<id>` selector. See DECISIONS §1.
+- **Last passing checks** (all on the revision above, after the rename):
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `pnpm test` | **15 files, 169 tests passed** (57 s) |
+| Unit tests | `pnpm test` | **15 files, 169 tests passed** (52 s) |
 | Typecheck | `pnpm typecheck` | clean |
 | Lint | `pnpm lint` | `Checked 76 files. No fixes applied.` |
-| Build | `pnpm build` | 13 files, 171 KiB, `dist/cli.js` 45.7 KiB |
-| Integration | `pnpm test:integration` | **2 files, 9 tests passed** (568 s, load 30) |
-| End-to-end | `pnpm test:e2e` | **E2E OK** — 9/9 steps |
-| Package | `pnpm verify:package` | 25 files, 200 KiB unpacked (tarball 59 KiB) |
+| Build | `pnpm build` | 13 files, `dist/cli.js` 45.7 KiB |
+| Integration | `pnpm test:integration` | **2 files, 9 tests passed** (342 s, load 29) |
+| End-to-end | `pnpm test:e2e` | **E2E OK** — 8/8 steps |
+| Package | `pnpm verify:package` | 25 files, 203 KiB unpacked (tarball 59 KiB) |
 | Install smoke | `pnpm verify:install` | 15/15 checks, `install smoke OK` |
 
 ## Milestones
@@ -26,14 +30,14 @@
       `noUncheckedIndexedAccess`), tsdown bundling (CLI, bridge, test fixture,
       daemon, `.d.ts`), Biome, Vitest (unit + integration configs), pnpm
       workspace with the example as a real consumer.
-- [x] **M1 — Init + skill**: `init` creates `.gameprob/` (7 files) without
+- [x] **M1 — Init + skill**: `init` creates `.agent-playtest/` (7 files) without
       touching game source, is idempotent, preserves edits, reports
       template-version mismatches instead of applying them; `skills get core
       [--full]` prints version-matched guides from bundled data; engine
       detection from `package.json`/source imports.
 - [x] **M2 — Local browser daemon**: per-project daemon on a Unix socket
       (0600 + token), length-prefixed JSON framing, serial queue with bounded
-      depth, idle timeout, session meta under `~/.gameprob/`, `close` and stale
+      depth, idle timeout, session meta under `~/.agent-playtest/`, `close` and stale
       socket recovery, protocol-version mismatch detection.
 - [x] **M3 — Three.js snapshot/inspect**: pre-order traversal with depth/limit
       bounds, `@gN` refs with `STALE_REF` detection, delta snapshots, world-space
@@ -43,12 +47,12 @@
       injected frame (restored in `finally`), `--views front,back,left,right,top,
       bottom,current`, blank-frame detection via in-page `readPixels`, manifest
       written next to the PNGs.
-- [x] **M5 — Saved test runner**: `gameprob run [spec]` spawns Playwright Test in
+- [x] **M5 — Saved test runner**: `agent-playtest run [spec]` spawns Playwright Test in
       a child process with an isolated browser context per test, writes
       `result.json` + Playwright JSON report + log, maps failures to
       `TEST_FAILED` (exit 5), and passes positional specs through to execution.
 - [ ] **M6 — Simulation/physics** (documented as "later"): the bridge contract,
-      capabilities and the `gameprob/test` fixture support
+      capabilities and the `agent-playtest/test` fixture support
       `reset`/`step`/`state`/`action`/`pause`, and `examples/spinner` implements
       them — verified by the wall-clamp test. A physics-engine integration
       (Rapier/Cannon) is **not** implemented.
@@ -66,7 +70,7 @@ open      → Browser: Chromium headless shell @ /usr/bin/chromium
             input.pointer, scene.inspect, scene.snapshot, simulation.action,
             simulation.pause, simulation.reset, simulation.state, simulation.step
 snapshot  → scene "spinner-scene", 7 objects, depth 4, truncated false
-            @g5 Hero [gameprob:id=main-hero], @g6 Wall, @g7 Obstacle
+            @g5 Hero [agent-playtest:id=main-hero], @g6 Wall, @g7 Obstacle
 inspect   → Mesh, world-3d, position [0, 0.4, 0], bounds size [1.126, 0.8, 1.126]
 act       → keydown ArrowRight + step 240 (dt = 1/60) → x = 1.52 exactly
             (MAX_HERO_X = WALL_INNER_X - HERO_HALF_WIDTH = 1.92 - 0.4)
@@ -81,7 +85,7 @@ ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`
 
 ## Bugs found by verification (fixed, with the check that caught them)
 
-1. **`npx gameprob` did nothing.** The CLI's direct-invocation guard compared
+1. **`npx agent-playtest` did nothing.** The CLI's direct-invocation guard compared
    `process.argv[1]` (the `node_modules/.bin` symlink) with `import.meta.url`
    (the realpath). Every packaged install exited 0 with no output. Caught by
    `scripts/verify-install.mjs`, added for exactly this class of defect; fixed by
@@ -90,7 +94,7 @@ ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`
    driver constructor, so a second capture to the same path always failed with
    "Refusing to overwrite existing file". Caught by running the e2e flow twice;
    now read per call, with a repeat-capture assertion in the integration suite.
-3. **`gameprob run <spec>` executed everything.** The spec argument only
+3. **`agent-playtest run <spec>` executed everything.** The spec argument only
    narrowed the summary. Fixed by passing the files to Playwright; the earlier
    behaviour is now unrepresentable.
 4. **`--headed` warned on every `open`.** `open()` acted on an absent flag.
@@ -116,7 +120,8 @@ ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`
   - same suite, load ~23–31 → the 300 s/420 s per-test budgets were exceeded
     (tests failed with `Test timeout`, not with a bad assertion);
   - after raising the budgets to 600 s/1320 s and the generated Playwright test
-    timeout to 180 s, **9/9 passed in 568 s at load 30**.
+    timeout to 180 s, **9/9 passed in 568 s at load 30** — and 342 s at load 29
+    after the rename.
   Mitigations: heavy browser tests live only in the opt-in
   `pnpm test:integration` / `pnpm test:e2e`; `pnpm test` (169 unit tests) is
   deterministic and runs in under a minute; the generated Playwright config uses
@@ -126,7 +131,7 @@ ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`
   `pkill`-style process management) and CI covers them, but that CI has not run.
 - **CI has not executed.** `.github/workflows/ci.yml` is written but this
   environment has no GitHub Actions runner; nothing in it has been observed.
-- **`GAMEPROB_EXAMPLE_PORT` / example server reuse**: when a developer already
+- **`AGENT_PLAYTEST_EXAMPLE_PORT` / example server reuse**: when a developer already
   serves `examples/spinner` on 5199, the harness and e2e script reuse it instead
   of failing. Verified by reusing a server started hours earlier by hand.
 
@@ -134,11 +139,12 @@ ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`
 
 All recorded in [`DECISIONS.md`](./DECISIONS.md). The ones worth repeating:
 
-- package/repo naming (`gameprob` vs `agent-playtest`);
+- package/CLI naming: `TECH_DOCS.md` says `gameprob`, the tool is
+  `agent-playtest` throughout (DECISIONS §1);
 - Vitest for both test suites instead of `playwright test` for integration
-  (the in-browser specs are still real Playwright specs, run by `gameprob run`);
+  (the in-browser specs are still real Playwright specs, run by `agent-playtest run`);
 - one `examples/spinner` instead of three examples;
-- `browser.executablePath` + `GAMEPROB_CHROMIUM_PATH` as the container escape
+- `browser.executablePath` + `AGENT_PLAYTEST_CHROMIUM_PATH` as the container escape
   hatch;
 - socket path fallback to `os.tmpdir()` for long project paths.
 

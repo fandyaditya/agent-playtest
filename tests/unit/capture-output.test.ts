@@ -13,7 +13,7 @@ import {
 let root = "";
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "gameprob-capture-"));
+  root = mkdtempSync(join(tmpdir(), "agent-playtest-capture-"));
 });
 
 afterEach(() => {
@@ -55,14 +55,18 @@ describe("PNG verification", () => {
 
 describe("capture output paths", () => {
   it("resolves an explicit file inside the project", () => {
-    const target = resolveWriteTarget(root, ".gameprob/output/page.png", false);
-    expect(target.path).toBe(join(root, ".gameprob/output/page.png"));
-    expect(target.relative).toBe(".gameprob/output/page.png");
+    const target = resolveWriteTarget(root, ".agent-playtest/output/page.png", false);
+    expect(target.path).toBe(join(root, ".agent-playtest/output/page.png"));
+    expect(target.relative).toBe(".agent-playtest/output/page.png");
   });
 
   it("normalizes an absolute path to a project-relative one", () => {
-    const target = resolveWriteTarget(root, resolve(root, ".gameprob/output/page.png"), false);
-    expect(target.relative).toBe(".gameprob/output/page.png");
+    const target = resolveWriteTarget(
+      root,
+      resolve(root, ".agent-playtest/output/page.png"),
+      false,
+    );
+    expect(target.relative).toBe(".agent-playtest/output/page.png");
   });
 
   it("refuses to write outside the project", () => {
@@ -85,7 +89,7 @@ describe("capture output paths", () => {
 
 describe("generated names", () => {
   it("never returns an empty or unsafe slug", () => {
-    expect(slugify("gameprob:id=main-hero")).toBe("gameprob-id-main-hero");
+    expect(slugify("agent-playtest:id=main-hero")).toBe("agent-playtest-id-main-hero");
     expect(slugify("   ")).toBe("capture");
     expect(slugify("../../etc/passwd")).not.toContain("..");
   });

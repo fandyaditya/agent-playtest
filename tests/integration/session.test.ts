@@ -57,7 +57,7 @@ describe("a full session against examples/spinner", () => {
       const opened = dataOf<OpenResult>(open, "open");
 
       expect(open.code).toBe(0);
-      expect(opened.url).toContain("gameprob=1");
+      expect(opened.url).toContain("agent-playtest=1");
       expect(opened.browser.toLowerCase()).toContain("chromium");
       expect(opened.bridge.connected).toBe(true);
       expect(opened.bridge.engine).toBe("three");
@@ -73,11 +73,13 @@ describe("a full session against examples/spinner", () => {
       expect(snapshot.meta.engine).toBe("three");
       expect(snapshot.meta.sceneName).toBe("spinner-scene");
       expect(snapshot.meta.truncated).toBe(false);
-      const hero = snapshot.objects.find((object) => object.selector === "gameprob:id=main-hero");
+      const hero = snapshot.objects.find(
+        (object) => object.selector === "agent-playtest:id=main-hero",
+      );
       expect(hero?.ref).toMatch(/^@g\d+$/);
 
       const before = dataOf<InspectLike>(
-        await runCli(["inspect", "gameprob:id=main-hero", "--json"], { timeoutMs: 120_000 }),
+        await runCli(["inspect", "agent-playtest:id=main-hero", "--json"], { timeoutMs: 120_000 }),
         "inspect",
       );
       expect(before.kind).toBe("mesh");
@@ -95,7 +97,7 @@ describe("a full session against examples/spinner", () => {
       dataOf<ActionResult>(await runCli(["act", "keyup", "ArrowRight", "--json"]), "act keyup");
 
       const after = dataOf<InspectLike>(
-        await runCli(["inspect", "gameprob:id=main-hero", "--json"], { timeoutMs: 120_000 }),
+        await runCli(["inspect", "agent-playtest:id=main-hero", "--json"], { timeoutMs: 120_000 }),
         "inspect",
       );
       // The wall clamp: the hero centre stops at MAX_HERO_X = 1.52.
@@ -104,7 +106,14 @@ describe("a full session against examples/spinner", () => {
 
       const page = dataOf<CaptureResult>(
         await runCli(
-          ["capture", "--page", "--out", ".gameprob/output/page-int.png", "--overwrite", "--json"],
+          [
+            "capture",
+            "--page",
+            "--out",
+            ".agent-playtest/output/page-int.png",
+            "--overwrite",
+            "--json",
+          ],
           { timeoutMs: 180_000 },
         ),
         "capture --page",
@@ -121,7 +130,14 @@ describe("a full session against examples/spinner", () => {
       // per call, not only when the file happens not to exist yet.
       const again = dataOf<CaptureResult>(
         await runCli(
-          ["capture", "--page", "--out", ".gameprob/output/page-int.png", "--overwrite", "--json"],
+          [
+            "capture",
+            "--page",
+            "--out",
+            ".agent-playtest/output/page-int.png",
+            "--overwrite",
+            "--json",
+          ],
           { timeoutMs: 180_000 },
         ),
         "capture --page (overwrite)",
@@ -133,11 +149,11 @@ describe("a full session against examples/spinner", () => {
         await runCli(
           [
             "capture",
-            "gameprob:id=main-hero",
+            "agent-playtest:id=main-hero",
             "--views",
             "front,right",
             "--out",
-            ".gameprob/output/hero-int",
+            ".agent-playtest/output/hero-int",
             "--overwrite",
             "--json",
           ],

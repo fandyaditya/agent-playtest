@@ -8,7 +8,7 @@
  */
 
 import { type Browser, type BrowserContext, chromium, type Page } from "playwright";
-import { GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError } from "../shared/errors.ts";
 
 export type BrowserBackend = "chromium-shell" | "chromium";
 
@@ -57,12 +57,12 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserSess
       /Executable doesn't exist|please run the following command|browserType\.launch/i.test(
         message,
       );
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "BROWSER_LAUNCH_FAILED",
       message: `Could not launch Chromium: ${message.split("\n")[0]}`,
       hint: missingBrowser
-        ? "Install the browser once with: npx playwright install --only-shell chromium, or point browser.executablePath / GAMEPROB_CHROMIUM_PATH at a Chromium build this machine can run."
-        : "Check that the browser backend in .gameprob/config.json is available on this machine.",
+        ? "Install the browser once with: npx playwright install --only-shell chromium, or point browser.executablePath / AGENT_PLAYTEST_CHROMIUM_PATH at a Chromium build this machine can run."
+        : "Check that the browser backend in .agent-playtest/config.json is available on this machine.",
       cause: error,
     });
   }

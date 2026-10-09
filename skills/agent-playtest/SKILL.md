@@ -1,9 +1,9 @@
 ---
-name: gameprob
+name: agent-playtest
 description: Inspect and test 2D/3D browser games with a local CLI. Use for Three.js/Phaser scenes, characters, collisions, animation, screenshots, gameplay state, and regression tests.
 ---
 
-# GameProb
+# Agent Playtest
 
 A local browser-game inspection and testing CLI for coding agents.
 
@@ -12,26 +12,26 @@ A local browser-game inspection and testing CLI for coding agents.
 Read the version-matched instructions from the installed CLI:
 
 ```bash
-gameprob skills get core
+agent-playtest skills get core
 ```
 
 For a new project:
 
 ```bash
-gameprob init
+agent-playtest init
 ```
 
-Read `.gameprob/AGENTS.md` when it exists.
+Read `.agent-playtest/AGENTS.md` when it exists.
 
 ## Typical workflow
 
 ```bash
-gameprob open http://127.0.0.1:5173/?gameprob=1
-gameprob snapshot
-gameprob inspect @g1
-gameprob capture @g1
-gameprob run
-gameprob close
+agent-playtest open http://127.0.0.1:5173/?agent-playtest=1
+agent-playtest snapshot
+agent-playtest inspect @g1
+agent-playtest capture @g1
+agent-playtest run
+agent-playtest close
 ```
 
-Keep reusable tests in `.gameprob/tests/` and report only verified findings.
+Keep reusable tests in `.agent-playtest/tests/` and report only verified findings.

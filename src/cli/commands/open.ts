@@ -1,5 +1,5 @@
 /**
- * `gameprob open [url]`
+ * `agent-playtest open [url]`
  */
 
 import type { OpenResult } from "../../shared/types.ts";

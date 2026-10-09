@@ -48,7 +48,7 @@ describe("buildSnapshot", () => {
     ]);
     expect(snapshot.objects[1]?.parentRef).toBe("@g1");
     expect(snapshot.objects[3]?.parentRef).toBe("@g3");
-    expect(snapshot.objects[1]?.selector).toBe("gameprob:id=main-hero");
+    expect(snapshot.objects[1]?.selector).toBe("agent-playtest:id=main-hero");
     expect(snapshot.objects[1]?.position).toEqual([0, 0.4, 0]);
   });
 

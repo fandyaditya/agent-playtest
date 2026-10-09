@@ -1,8 +1,8 @@
 /**
- * `gameprob inspect <@ref|selector> [--details]`
+ * `agent-playtest inspect <@ref|selector> [--details]`
  */
 
-import { GameProbError } from "../../shared/errors.ts";
+import { AgentPlaytestError } from "../../shared/errors.ts";
 import type { InspectResult } from "../../shared/types.ts";
 import { type CommandResult, callDaemon, loadContext } from "../context.ts";
 
@@ -16,10 +16,10 @@ export async function runInspect(
   options: InspectCommandOptions,
 ): Promise<CommandResult<InspectResult>> {
   if (!selector) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message:
-        "inspect requires a subject: a @gN ref from `gameprob snapshot`, or a persistent selector such as gameprob:id=main-hero.",
+        "inspect requires a subject: a @gN ref from `agent-playtest snapshot`, or a persistent selector such as agent-playtest:id=main-hero.",
     });
   }
   const context = loadContext({ project: options.project, requireWorkspace: true });

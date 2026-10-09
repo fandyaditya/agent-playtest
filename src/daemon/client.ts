@@ -8,7 +8,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { closeSync, existsSync, openSync, readFileSync } from "node:fs";
 import { connect, type Socket } from "node:net";
 import { join } from "node:path";
-import { GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError } from "../shared/errors.ts";
 import {
   clearSessionMeta,
   isProcessAlive,
@@ -39,10 +39,10 @@ export function daemonEntryPath(): string {
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate;
   }
-  throw new GameProbError({
+  throw new AgentPlaytestError({
     code: "INTERNAL_ERROR",
-    message: "Could not locate the GameProb daemon entry point.",
-    hint: "The package is incomplete; reinstall gameprob.",
+    message: "Could not locate the Agent Playtest daemon entry point.",
+    hint: "The package is incomplete; reinstall agent-playtest.",
   });
 }
 
@@ -87,7 +87,7 @@ export async function ensureDaemon(options: EnsureDaemonOptions): Promise<Daemon
 /**
  * Removes a stale or version-mismatched daemon entry. A live daemon is only
  * signalled when it is verifiably ours (recorded in our own session file AND,
- * on Linux, its command line names the GameProb daemon entry point).
+ * on Linux, its command line names the Agent Playtest daemon entry point).
  */
 export async function retireDaemon(
   endpoint: SessionEndpoint,
@@ -155,18 +155,18 @@ export async function startDaemon(
       }
     }
     if (child.exitCode !== null && child.exitCode !== 0) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "SESSION_NOT_FOUND",
-        message: `The GameProb daemon exited during startup with code ${child.exitCode}.`,
+        message: `The Agent Playtest daemon exited during startup with code ${child.exitCode}.`,
         hint: `Check the daemon log: ${logPath}`,
       });
     }
     await delay(100);
   }
 
-  throw new GameProbError({
+  throw new AgentPlaytestError({
     code: "SESSION_NOT_FOUND",
-    message: `The GameProb daemon did not become ready within ${startupTimeoutMs}ms.`,
+    message: `The Agent Playtest daemon did not become ready within ${startupTimeoutMs}ms.`,
     hint: `Check the daemon log: ${logPath}`,
   });
 }
@@ -213,10 +213,10 @@ async function sendRaw<T>(
 
     const timer = setTimeout(() => {
       finish(
-        new GameProbError({
+        new AgentPlaytestError({
           code: "SESSION_NOT_FOUND",
           message: `The daemon did not answer "${command}" within ${timeoutMs}ms.`,
-          hint: "The session may be stuck. Run `gameprob close` and retry.",
+          hint: "The session may be stuck. Run `agent-playtest close` and retry.",
         }),
       );
     }, timeoutMs);
@@ -238,9 +238,9 @@ async function sendRaw<T>(
       const code = (error as NodeJS.ErrnoException).code;
       if (code === "ENOENT" || code === "ECONNREFUSED") {
         finish(
-          new GameProbError({
+          new AgentPlaytestError({
             code: "SESSION_NOT_FOUND",
-            message: "The GameProb daemon is not reachable.",
+            message: "The Agent Playtest daemon is not reachable.",
             hint: "It may have exited. Retry; a new daemon starts automatically.",
           }),
         );
@@ -274,7 +274,7 @@ function looksLikeOurDaemon(pid: number): boolean {
   if (process.platform !== "linux") return true;
   try {
     const cmdline = readFileSync(`/proc/${pid}/cmdline`, "utf8");
-    return cmdline.includes("gameprob") && cmdline.includes("entry");
+    return cmdline.includes("agent-playtest") && cmdline.includes("entry");
   } catch {
     return false;
   }

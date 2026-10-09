@@ -7,7 +7,7 @@
 
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
-import { GameProbError } from "./errors.ts";
+import { AgentPlaytestError } from "./errors.ts";
 import { machineHome, PROJECT_DIR_NAME, readJsonFile } from "./paths.ts";
 import {
   type ProjectConfigFile,
@@ -26,8 +26,8 @@ export function loadProjectConfig(projectRoot: string): ResolvedConfig {
     ...(projectFile ? { project: projectFile } : {}),
     ...(userFile ? { user: userFile } : {}),
     // The environment is a machine-local override, so it ranks above config files.
-    ...(process.env.GAMEPROB_CHROMIUM_PATH
-      ? { flags: { executablePath: process.env.GAMEPROB_CHROMIUM_PATH } }
+    ...(process.env.AGENT_PLAYTEST_CHROMIUM_PATH
+      ? { flags: { executablePath: process.env.AGENT_PLAYTEST_CHROMIUM_PATH } }
       : {}),
   });
 }
@@ -38,14 +38,14 @@ export function readConfigFile(path: string): ProjectConfigFile | undefined {
   try {
     raw = readJsonFile(path);
   } catch (error) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "CONFIG_INVALID",
       message: `${path} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
     });
   }
   const parsed = parseConfigFile(raw, path);
   if (!parsed.ok) {
-    throw new GameProbError({ code: "CONFIG_INVALID", message: parsed.message });
+    throw new AgentPlaytestError({ code: "CONFIG_INVALID", message: parsed.message });
   }
   return parsed.value;
 }

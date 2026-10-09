@@ -1,12 +1,12 @@
 /**
- * `gameprob/bridge` — the development-only in-page bridge.
+ * `agent-playtest/bridge` — the development-only in-page bridge.
  *
  * This module is imported by the *consumer's* game code (through
- * `.gameprob/bridge.ts`) and runs inside the browser. It must never import Node
+ * `.agent-playtest/bridge.ts`) and runs inside the browser. It must never import Node
  * APIs, and it must never be active in a production build.
  */
 
-import { capabilityError, GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, capabilityError } from "../shared/errors.ts";
 import {
   BRIDGE_GLOBAL,
   BRIDGE_VERSION,
@@ -88,9 +88,9 @@ const DEFAULT_TICK_SECONDS = 1 / 60;
 
 export function connect(options: ConnectOptions): PageBridgeApi {
   if (options.engine !== "three") {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "CAPABILITY_UNAVAILABLE",
-      message: `Engine "${options.engine}" is not implemented in this GameProb version.`,
+      message: `Engine "${options.engine}" is not implemented in this Agent Playtest version.`,
       missing: [`adapter.${options.engine}`],
       hint: "Three.js is the only shipped adapter in V1; a Phaser adapter is planned.",
     });
@@ -99,7 +99,7 @@ export function connect(options: ConnectOptions): PageBridgeApi {
   const camera = options.camera as never;
   const renderer = options.renderer as never;
   if (!scene || !camera || !renderer) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: "connect({ engine: 'three' }) requires scene, camera and renderer references.",
       hint: "Pass the real game objects, not a placeholder.",
@@ -124,16 +124,16 @@ export function connect(options: ConnectOptions): PageBridgeApi {
       const object = registry.resolve(value);
       if (object) return { object: object as Object3DLike, warnings: [] };
       if (registry.isKnown(value)) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "STALE_REF",
           message: `Ref ${value} no longer refers to an object in this scene generation.`,
-          hint: "Run `gameprob snapshot` again to obtain current refs.",
+          hint: "Run `agent-playtest snapshot` again to obtain current refs.",
         });
       }
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "OBJECT_NOT_FOUND",
         message: `Unknown ref ${value}.`,
-        hint: "Refs are session-local: run `gameprob snapshot` first.",
+        hint: "Refs are session-local: run `agent-playtest snapshot` first.",
       });
     }
 
@@ -147,13 +147,13 @@ export function connect(options: ConnectOptions): PageBridgeApi {
       return { object: resolution.object, warnings: resolution.warnings };
     }
     if (resolution.kind === "ambiguous") {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INVALID_ARGUMENT",
         message: resolution.message,
         hint: `Candidates: ${resolution.matches.slice(0, 10).join(", ")}`,
       });
     }
-    throw new GameProbError({ code: "OBJECT_NOT_FOUND", message: resolution.message });
+    throw new AgentPlaytestError({ code: "OBJECT_NOT_FOUND", message: resolution.message });
   };
 
   const api: PageBridgeApi = {
@@ -225,7 +225,7 @@ export function connect(options: ConnectOptions): PageBridgeApi {
         ...partial,
       };
       const id = adapter.persistentIdOf(object);
-      if (id) result.selector = `gameprob:id=${id}`;
+      if (id) result.selector = `agent-playtest:id=${id}`;
       if (selectorWarnings.length > 0) {
         result.warnings = [
           ...result.warnings,
@@ -270,7 +270,7 @@ export function connect(options: ConnectOptions): PageBridgeApi {
   if (previous && typeof previous.dispose === "function") {
     // Hot module replacement / double init: never accumulate listeners or refs.
     previous.dispose();
-    log("GameProb bridge re-registered; the previous connection was disposed.");
+    log("Agent Playtest bridge re-registered; the previous connection was disposed.");
   }
   globalScope[BRIDGE_GLOBAL] = api;
   return api;
@@ -289,19 +289,19 @@ function createSimulationApi(hooks: SimulationHooks): SimulationApi & { dispose(
       requireHook(hooks.pause, "simulation.pause");
       requireHook(hooks.step, "simulation.step");
       if (!Number.isInteger(ticks) || ticks < 1) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "INVALID_ARGUMENT",
           message: `Tick count must be a positive integer (received ${ticks}).`,
         });
       }
       if (ticks > MAX_TICKS_PER_REQUEST) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "INVALID_ARGUMENT",
           message: `Tick count ${ticks} exceeds the per-request limit of ${MAX_TICKS_PER_REQUEST}.`,
         });
       }
       if (!Number.isFinite(dtSeconds) || dtSeconds <= 0 || dtSeconds > 1) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "INVALID_ARGUMENT",
           message: `Timestep must be a finite number in (0, 1] seconds (received ${dtSeconds}).`,
         });
@@ -355,7 +355,7 @@ function requireHook<T>(hook: T | undefined, name: string): asserts hook is T {
     throw capabilityError(
       `${name} is not connected for this project.`,
       [name],
-      "Add the optional hook in .gameprob/bridge.ts (see .gameprob/AGENTS.md).",
+      "Add the optional hook in .agent-playtest/bridge.ts (see .agent-playtest/AGENTS.md).",
     );
   }
 }
@@ -436,6 +436,6 @@ function emptyFeatures(): Record<CapabilityKey, boolean> {
 
 function log(message: string): void {
   if (typeof console !== "undefined" && typeof console.warn === "function") {
-    console.warn(`[gameprob] ${message}`);
+    console.warn(`[agent-playtest] ${message}`);
   }
 }

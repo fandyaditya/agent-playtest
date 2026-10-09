@@ -1,8 +1,8 @@
 /**
- * `gameprob capture [@ref|selector] [--page] [--views ...] [--out path]`
+ * `agent-playtest capture [@ref|selector] [--page] [--views ...] [--out path]`
  */
 
-import { GameProbError } from "../../shared/errors.ts";
+import { AgentPlaytestError } from "../../shared/errors.ts";
 import type { CaptureResult, CaptureViewName } from "../../shared/types.ts";
 import { type CommandResult, callDaemon, loadContext } from "../context.ts";
 
@@ -42,7 +42,7 @@ export async function runCapture(
       .filter((value) => value.length > 0);
     for (const view of views) {
       if (!VALID_VIEWS.has(view as CaptureViewName)) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "INVALID_ARGUMENT",
           message: `Unknown view "${view}".`,
           hint: `Supported views: ${[...VALID_VIEWS].join(", ")}`,
@@ -53,10 +53,10 @@ export async function runCapture(
   }
 
   if (!options.page && !selector) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: "capture needs either --page or a subject (a @gN ref or a persistent selector).",
-      hint: "Examples: gameprob capture --page | gameprob capture @g2 --views front,back,left,right",
+      hint: "Examples: agent-playtest capture --page | agent-playtest capture @g2 --views front,back,left,right",
     });
   }
 

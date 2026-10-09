@@ -45,7 +45,7 @@ importers:
 
   examples/spinner:
     devDependencies:
-      gameprob:
+      agent-playtest:
         specifier: workspace:*
         version: link:../..
 

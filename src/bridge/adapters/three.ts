@@ -46,7 +46,7 @@ import {
   type CameraLike,
   looksLikeHelper,
   type Object3DLike,
-  readGameProbMeta,
+  readAgentPlaytestMeta,
   type WebGLRendererLike,
 } from "./three-types.ts";
 
@@ -157,7 +157,7 @@ export class ThreeAdapter implements EngineAdapter<Object3DLike> {
   }
 
   persistentIdOf(object: Object3DLike): string | undefined {
-    return readGameProbMeta(object).id;
+    return readAgentPlaytestMeta(object).id;
   }
 
   isVisible(object: Object3DLike): boolean | undefined {
@@ -173,7 +173,7 @@ export class ThreeAdapter implements EngineAdapter<Object3DLike> {
   }
 
   animationOf(object: Object3DLike): string | undefined {
-    return readGameProbMeta(object).animation;
+    return readAgentPlaytestMeta(object).animation;
   }
 
   subjectHintFor(object: Object3DLike): SubjectHint | undefined {
@@ -224,7 +224,7 @@ export class ThreeAdapter implements EngineAdapter<Object3DLike> {
       engineType: this.engineTypeOf(object),
     };
     const id = this.persistentIdOf(object);
-    if (id) summary.selector = `gameprob:id=${id}`;
+    if (id) summary.selector = `agent-playtest:id=${id}`;
     if (parentRef) summary.parentRef = parentRef;
     const visible = this.isVisible(object);
     if (visible !== undefined) summary.visible = visible;

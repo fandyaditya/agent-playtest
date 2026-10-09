@@ -1,14 +1,14 @@
 /**
  * The shared browser-game driver.
  *
- * The interactive daemon and the `gameprob/test` fixture both drive a page
+ * The interactive daemon and the `agent-playtest/test` fixture both drive a page
  * through THIS class, so CLI inspection and saved tests cannot drift apart.
  */
 
 import { join, relative } from "node:path";
 import type { Page } from "playwright";
 import type { BeginCaptureResult } from "../bridge/capture.ts";
-import { capabilityError, GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, capabilityError } from "../shared/errors.ts";
 import { atomicWriteJson } from "../shared/paths.ts";
 import type { ResolvedConfig } from "../shared/schemas.ts";
 import type {
@@ -134,10 +134,10 @@ export class BrowserGameDriver {
   async open(urlArgument?: string, options: { allowRemote?: boolean } = {}): Promise<OpenResult> {
     const raw = urlArgument ?? this.config.game.url;
     if (!raw) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INVALID_ARGUMENT",
-        message: "No URL was provided and .gameprob/config.json has no game.url.",
-        hint: "Run: gameprob open http://127.0.0.1:5173/?gameprob=1",
+        message: "No URL was provided and .agent-playtest/config.json has no game.url.",
+        hint: "Run: agent-playtest open http://127.0.0.1:5173/?agent-playtest=1",
       });
     }
     const target = assertAllowedTarget(raw, options.allowRemote === true);
@@ -159,10 +159,10 @@ export class BrowserGameDriver {
         this.#opened = false;
         this.#probe = null;
         const message = error instanceof Error ? error.message.split("\n")[0] : String(error);
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "NAVIGATION_FAILED",
           message: `Navigation to ${target} failed: ${message}`,
-          hint: "Confirm the development server is running and the URL is correct. GameProb does not start your dev server.",
+          hint: "Confirm the development server is running and the URL is correct. Agent Playtest does not start your dev server.",
           cause: error,
         });
       }
@@ -188,9 +188,11 @@ export class BrowserGameDriver {
         gameReady = "unknown";
       }
     } else {
-      warnings.push("No GameProb bridge was detected on this page: running in browser-only mode.");
       warnings.push(
-        "Scene snapshots require the development-only bridge. Run `gameprob init` and connect .gameprob/bridge.ts.",
+        "No Agent Playtest bridge was detected on this page: running in browser-only mode.",
+      );
+      warnings.push(
+        "Scene snapshots require the development-only bridge. Run `agent-playtest init` and connect .agent-playtest/bridge.ts.",
       );
     }
 
@@ -251,11 +253,11 @@ export class BrowserGameDriver {
 
   async snapshot(options: SnapshotOptions = {}): Promise<SnapshotResult> {
     if (!this.#probe && !(await this.#refreshProbe())) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "CAPABILITY_UNAVAILABLE",
-        message: "GameProb cannot produce a game-scene snapshot without a connected bridge.",
+        message: "Agent Playtest cannot produce a game-scene snapshot without a connected bridge.",
         missing: ["scene.snapshot", "bridge"],
-        hint: "Run `gameprob init`, connect .gameprob/bridge.ts in development, and load the page with ?gameprob=1. `capture --page` works without a bridge.",
+        hint: "Run `agent-playtest init`, connect .agent-playtest/bridge.ts in development, and load the page with ?agent-playtest=1. `capture --page` works without a bridge.",
       });
     }
     const result = await invokeBridge<SnapshotResult>(this.page, "snapshot", [options]);
@@ -277,14 +279,14 @@ export class BrowserGameDriver {
     } catch (error) {
       const trimmed = selector.trim();
       if (
-        error instanceof GameProbError &&
+        error instanceof AgentPlaytestError &&
         error.code === "OBJECT_NOT_FOUND" &&
         this.#knownRefs.has(trimmed)
       ) {
-        throw new GameProbError({
+        throw new AgentPlaytestError({
           code: "STALE_REF",
           message: `Ref ${trimmed} belonged to an earlier scene generation and no longer resolves.`,
-          hint: "Run `gameprob snapshot` again for fresh refs. Saved tests should use a persistent selector such as gameprob:id=<id>.",
+          hint: "Run `agent-playtest snapshot` again for fresh refs. Saved tests should use a persistent selector such as agent-playtest:id=<id>.",
         });
       }
       throw error;
@@ -297,10 +299,10 @@ export class BrowserGameDriver {
       case "keyup":
       case "press": {
         if (request.key === undefined) {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "INVALID_ARGUMENT",
             message: `act ${request.action} requires a key.`,
-            hint: `Example: gameprob act ${request.action} ArrowRight`,
+            hint: `Example: agent-playtest act ${request.action} ArrowRight`,
           });
         }
         const key = await keyAction(this.page, request.action as KeyAction, request.key);
@@ -308,10 +310,10 @@ export class BrowserGameDriver {
       }
       case "click": {
         if (request.x === undefined || request.y === undefined) {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "INVALID_ARGUMENT",
             message: "act click requires x and y viewport CSS pixel coordinates.",
-            hint: "Example: gameprob act click 400 280",
+            hint: "Example: agent-playtest act click 400 280",
           });
         }
         const where = await clickAt(this.page, request.x, request.y);
@@ -320,10 +322,10 @@ export class BrowserGameDriver {
       case "step": {
         const ticks = request.ticks;
         if (ticks === undefined || !Number.isInteger(ticks) || ticks < 1) {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "INVALID_ARGUMENT",
             message: "act step requires a positive integer tick count.",
-            hint: "Example: gameprob act step 120",
+            hint: "Example: agent-playtest act step 120",
           });
         }
         const result = await this.step(ticks);
@@ -340,7 +342,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["simulation.pause", "simulation.step"],
       "Controlled simulation is not connected for this project.",
-      "Add the optional simulation hooks (pause/step) in .gameprob/bridge.ts.",
+      "Add the optional simulation hooks (pause/step) in .agent-playtest/bridge.ts.",
     );
     return invokeBridge<{ ticks: number; warnings: string[] }>(
       this.page,
@@ -353,7 +355,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["simulation.reset"],
       "Deterministic reset is not connected for this project.",
-      "Add simulation.reset in .gameprob/bridge.ts so tests can start from a known state.",
+      "Add simulation.reset in .agent-playtest/bridge.ts so tests can start from a known state.",
     );
     await invokeBridge<void>(this.page, "simulation.reset", fixture === undefined ? [] : [fixture]);
   }
@@ -362,7 +364,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["simulation.state"],
       "Gameplay state readback is not connected for this project.",
-      "Add simulation.state in .gameprob/bridge.ts to assert on real gameplay values.",
+      "Add simulation.state in .agent-playtest/bridge.ts to assert on real gameplay values.",
     );
     return invokeBridge<unknown>(
       this.page,
@@ -375,7 +377,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["simulation.action"],
       "Scripted game actions are not connected for this project.",
-      "Add simulation.action in .gameprob/bridge.ts.",
+      "Add simulation.action in .agent-playtest/bridge.ts.",
     );
     await invokeBridge<void>(this.page, "simulation.action", [name, args]);
   }
@@ -384,7 +386,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["physics.inspectBody"],
       "Physics body inspection is not connected for this project.",
-      "Add physics.inspectBody in .gameprob/bridge.ts.",
+      "Add physics.inspectBody in .agent-playtest/bridge.ts.",
     );
     return invokeBridge<unknown>(this.page, "physics.inspectBody", [subject]);
   }
@@ -393,7 +395,7 @@ export class BrowserGameDriver {
     await this.#requireCapabilities(
       ["physics.contacts"],
       "Physics contact inspection is not connected for this project.",
-      "Add physics.contacts in .gameprob/bridge.ts. Bounding-box overlap is not a substitute for real contact data.",
+      "Add physics.contacts in .agent-playtest/bridge.ts. Bounding-box overlap is not a substitute for real contact data.",
     );
     return invokeBridge<unknown>(this.page, "physics.contacts", [subject]);
   }
@@ -413,7 +415,7 @@ export class BrowserGameDriver {
     const buffer = await screenshotPage(this.page);
     const info = readPngInfo(buffer);
     if (!info) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INTERNAL_ERROR",
         message: "Playwright returned a page screenshot that is not a valid PNG.",
       });
@@ -449,7 +451,7 @@ export class BrowserGameDriver {
       throw capabilityError(
         "Object capture is not available for this project.",
         ["capture.object"],
-        "Use `capture --page`, or connect scene/camera/renderer in .gameprob/bridge.ts.",
+        "Use `capture --page`, or connect scene/camera/renderer in .agent-playtest/bridge.ts.",
       );
     }
 
@@ -474,7 +476,7 @@ export class BrowserGameDriver {
       ]);
       try {
         if (begin.frame && begin.frame.nonBlank === false) {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "CAPABILITY_UNAVAILABLE",
             message: `The renderer produced a uniform (blank) frame for view "${view}" of ${begin.subject.name}.`,
             missing: ["capture.object"],
@@ -484,7 +486,7 @@ export class BrowserGameDriver {
         const buffer = await screenshotCanvas(this.page);
         const info = readPngInfo(buffer);
         if (!info) {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "INTERNAL_ERROR",
             message: "The canvas screenshot is not a valid PNG.",
           });
@@ -577,11 +579,11 @@ export class BrowserGameDriver {
   async #assertBridge(what: string): Promise<void> {
     if (this.#probe) return;
     if (await this.#refreshProbe()) return;
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "BRIDGE_NOT_CONNECTED",
-      message: `\`${what}\` requires the development-only GameProb bridge, which is not connected on this page.`,
+      message: `\`${what}\` requires the development-only Agent Playtest bridge, which is not connected on this page.`,
       missing: ["bridge"],
-      hint: "Run `gameprob init`, connect .gameprob/bridge.ts during development, and reload with ?gameprob=1.",
+      hint: "Run `agent-playtest init`, connect .agent-playtest/bridge.ts during development, and reload with ?agent-playtest=1.",
     });
   }
 
@@ -596,13 +598,13 @@ export function assertAllowedTarget(rawUrl: string, allowRemote: boolean): strin
   try {
     url = new URL(rawUrl);
   } catch {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Not a valid URL: ${rawUrl}`,
     });
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "UNAUTHORIZED_TARGET",
       message: `Only http(s) targets are allowed (received ${url.protocol}).`,
     });
@@ -617,10 +619,10 @@ export function assertAllowedTarget(rawUrl: string, allowRemote: boolean): strin
     host === "::1" ||
     /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host);
   if (!loopback) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "UNAUTHORIZED_TARGET",
       message: `Refusing to navigate to non-loopback origin ${url.origin}.`,
-      hint: "GameProb is local-first. Pass --allow-remote to explicitly opt in to a remote target.",
+      hint: "Agent Playtest is local-first. Pass --allow-remote to explicitly opt in to a remote target.",
     });
   }
   return url.toString();
@@ -639,7 +641,7 @@ function resolveInsideDirectory(projectRoot: string, candidate: string): string 
   const target = join(projectRoot, candidate);
   const rel = relative(projectRoot, target);
   if (rel.startsWith("..")) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Refusing to write outside the project: ${candidate}`,
     });

@@ -1,5 +1,5 @@
 {
-  "name": "gameprob",
+  "name": "agent-playtest",
   "version": "0.1.0",
   "description": "Local, agent-friendly CLI for inspecting, interacting with, and testing 2D/3D browser games.",
   "keywords": [
@@ -16,7 +16,7 @@
     "node": ">=24"
   },
   "bin": {
-    "gameprob": "./dist/cli.js"
+    "agent-playtest": "./dist/cli.js"
   },
   "exports": {
     "./bridge": {

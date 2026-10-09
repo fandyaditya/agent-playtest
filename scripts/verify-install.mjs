@@ -34,7 +34,7 @@ if (!existsSync(join(root, "dist", "cli.js"))) {
   process.exit(1);
 }
 
-const sandbox = mkdtempSync(join(tmpdir(), "gameprob-install-"));
+const sandbox = mkdtempSync(join(tmpdir(), "agent-playtest-install-"));
 const packDir = join(sandbox, "pack");
 const consumer = join(sandbox, "consumer");
 const game = join(sandbox, "game");
@@ -61,18 +61,18 @@ try {
     consumer,
     "node_modules",
     ".bin",
-    process.platform === "win32" ? "gameprob.cmd" : "gameprob",
+    process.platform === "win32" ? "agent-playtest.cmd" : "agent-playtest",
   );
   check("bin installed", existsSync(bin));
 
   // 2. Run the binary through the shim: this is where a broken realpath guard
-  // ("npx gameprob does nothing") shows up.
+  // ("npx agent-playtest does nothing") shows up.
   const version = execFileSync(bin, ["--version"], { encoding: "utf8" });
-  check("gameprob --version via bin", /^\d+\.\d+\.\d+/.test(version.trim()), version.trim());
+  check("agent-playtest --version via bin", /^\d+\.\d+\.\d+/.test(version.trim()), version.trim());
 
   const help = execFileSync(bin, ["--help"], { encoding: "utf8" });
   check(
-    "gameprob --help lists every command",
+    "agent-playtest --help lists every command",
     ["init", "open", "snapshot", "inspect", "act", "capture", "run", "close", "skills"].every(
       (command) => help.includes(command),
     ),
@@ -83,7 +83,10 @@ try {
     maxBuffer: 16 * 1024 * 1024,
   });
   const envelope = JSON.parse(skills);
-  check("skills get core reads bundled data", (envelope.data?.content ?? "").includes("gameprob"));
+  check(
+    "skills get core reads bundled data",
+    (envelope.data?.content ?? "").includes("agent-playtest"),
+  );
 
   // 3. `init` must work from the installed package: templates resolve relative
   // to the installed root, not to the repository.
@@ -95,14 +98,14 @@ try {
   const created = JSON.parse(init).data?.created ?? [];
   check(
     "init creates the workspace",
-    existsSync(join(game, ".gameprob", "config.json")),
+    existsSync(join(game, ".agent-playtest", "config.json")),
     `${created.length} files`,
   );
   for (const file of ["AGENTS.md", "config.json", "bridge.ts", "progress.md", "tests/.gitkeep"]) {
-    check(`init created ${file}`, existsSync(join(game, ".gameprob", file)));
+    check(`init created ${file}`, existsSync(join(game, ".agent-playtest", file)));
   }
 
-  const config = JSON.parse(readFileSync(join(game, ".gameprob", "config.json"), "utf8"));
+  const config = JSON.parse(readFileSync(join(game, ".agent-playtest", "config.json"), "utf8"));
   check(
     "config is templated, not literal",
     config.project?.name === "smoke-game",

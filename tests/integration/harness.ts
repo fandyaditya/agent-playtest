@@ -15,12 +15,12 @@ import { fileURLToPath } from "node:url";
 export const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const EXAMPLE_ROOT = join(PACKAGE_ROOT, "examples", "spinner");
 export const CLI = join(PACKAGE_ROOT, "dist", "cli.js");
-export const EXAMPLE_PORT = Number(process.env.GAMEPROB_EXAMPLE_PORT ?? 5199);
-export const EXAMPLE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/?gameprob=1`;
+export const EXAMPLE_PORT = Number(process.env.AGENT_PLAYTEST_EXAMPLE_PORT ?? 5199);
+export const EXAMPLE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/?agent-playtest=1`;
 export const HOME = join(PACKAGE_ROOT, ".tmp-integration-home");
 
 export function chromiumPath(): string | undefined {
-  const explicit = process.env.GAMEPROB_CHROMIUM_PATH;
+  const explicit = process.env.AGENT_PLAYTEST_CHROMIUM_PATH;
   if (explicit) return explicit;
   for (const candidate of [
     "/usr/bin/chromium",
@@ -42,11 +42,11 @@ export function requireBuild(): void {
 export function cliEnv(extra: Record<string, string> = {}): Record<string, string> {
   const env: Record<string, string> = {
     ...(process.env as Record<string, string>),
-    GAMEPROB_HOME: HOME,
+    AGENT_PLAYTEST_HOME: HOME,
     ...extra,
   };
   const chromium = chromiumPath();
-  if (chromium) env.GAMEPROB_CHROMIUM_PATH = chromium;
+  if (chromium) env.AGENT_PLAYTEST_CHROMIUM_PATH = chromium;
   return env;
 }
 
@@ -84,7 +84,9 @@ export function runCli(
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
       reject(
-        new Error(`gameprob ${args.join(" ")} timed out after ${options.timeoutMs ?? 120_000}ms`),
+        new Error(
+          `agent-playtest ${args.join(" ")} timed out after ${options.timeoutMs ?? 120_000}ms`,
+        ),
       );
     }, options.timeoutMs ?? 120_000);
 
@@ -111,10 +113,10 @@ export function runCli(
 /** Envelope `data` for a successful command, failing loudly when it did not succeed. */
 export function dataOf<T>(result: CliResult, command: string): T {
   if (!result.json) {
-    throw new Error(`gameprob ${command} printed no JSON envelope. stderr: ${result.stderr}`);
+    throw new Error(`agent-playtest ${command} printed no JSON envelope. stderr: ${result.stderr}`);
   }
   if (result.json.ok !== true) {
-    throw new Error(`gameprob ${command} failed: ${JSON.stringify(result.json.error)}`);
+    throw new Error(`agent-playtest ${command} failed: ${JSON.stringify(result.json.error)}`);
   }
   return result.json.data as T;
 }
@@ -139,7 +141,7 @@ async function reuseIfRunning(port: number): Promise<boolean> {
     if (!response.ok) return false;
     const body = await response.text();
     // Only reuse something that really is this example game.
-    return body.includes('id="game"') || body.includes("gameprob");
+    return body.includes('id="game"') || body.includes("agent-playtest");
   } catch {
     return false;
   }
@@ -150,7 +152,7 @@ export async function startExampleServer(port = EXAMPLE_PORT): Promise<ExampleSe
   // A developer (or an earlier run) may already serve this example. Reuse it:
   // killing an unrelated server would be both rude and flaky.
   if (await reuseIfRunning(port)) {
-    return { url: `http://127.0.0.1:${port}/?gameprob=1`, stop: async () => undefined };
+    return { url: `http://127.0.0.1:${port}/?agent-playtest=1`, stop: async () => undefined };
   }
 
   const child: ChildProcess = spawn(process.execPath, [join(EXAMPLE_ROOT, "server.mjs")], {
@@ -200,7 +202,7 @@ export async function startExampleServer(port = EXAMPLE_PORT): Promise<ExampleSe
   }
 
   return {
-    url: `http://127.0.0.1:${port}/?gameprob=1`,
+    url: `http://127.0.0.1:${port}/?agent-playtest=1`,
     stop: async () => {
       if (child.exitCode !== null || child.signalCode !== null) return;
       const exited = new Promise<void>((r) => child.once("close", () => r()));

@@ -38,7 +38,7 @@ jobs:
           path: dist/
           retention-days: 3
 
-  # The consumer entry point: tarball -> throwaway project -> `gameprob` bin.
+  # The consumer entry point: tarball -> throwaway project -> `agent-playtest` bin.
   cli-smoke:
     name: cli-smoke (${{ matrix.os }})
     needs: quality
@@ -88,7 +88,7 @@ jobs:
         with:
           name: integration-output
           path: |
-            examples/spinner/.gameprob/output/
+            examples/spinner/.agent-playtest/output/
             tests/.tmp/
           if-no-files-found: ignore
           retention-days: 7

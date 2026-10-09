@@ -9,7 +9,7 @@
 import { existsSync } from "node:fs";
 import { relative } from "node:path";
 import type { Page } from "playwright";
-import { GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError } from "../shared/errors.ts";
 import { atomicWriteBuffer, resolveInside } from "../shared/paths.ts";
 
 export interface PngInfo {
@@ -71,7 +71,7 @@ export async function screenshotPage(page: Page): Promise<Buffer> {
 export async function screenshotCanvas(page: Page): Promise<Buffer> {
   const canvases = page.locator("canvas");
   if ((await canvases.count()) === 0) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "CAPABILITY_UNAVAILABLE",
       message: "The page has no <canvas> element to capture.",
       missing: ["canvas"],
@@ -86,7 +86,7 @@ export async function screenshotCanvas(page: Page): Promise<Buffer> {
   await canvas.scrollIntoViewIfNeeded().catch(() => undefined);
   const box = await canvas.boundingBox();
   if (!box || box.width < 1 || box.height < 1) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "CAPABILITY_UNAVAILABLE",
       message: "The <canvas> has no measurable size, so there is nothing to capture.",
       missing: ["canvas-size"],
@@ -130,7 +130,7 @@ export function resolveWriteTarget(
 ): WriteTarget {
   const absolute = resolveInside(projectRoot, target, "capture output path");
   if (existsSync(absolute) && !overwrite) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Refusing to overwrite existing file: ${absolute}`,
       hint: "Pass --overwrite to replace it, or choose a different --out path.",
@@ -142,7 +142,7 @@ export function resolveWriteTarget(
 export function writePng(target: WriteTarget, buffer: Buffer): PngInfo {
   const info = readPngInfo(buffer);
   if (!info) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INTERNAL_ERROR",
       message: `The browser returned ${buffer.length} bytes that are not a valid PNG.`,
     });

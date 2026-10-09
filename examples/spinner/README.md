@@ -1,6 +1,6 @@
 # Example game: spinner
 
-A minimal but real Three.js game, used to exercise GameProb end to end: the
+A minimal but real Three.js game, used to exercise Agent Playtest end to end: the
 scene graph, persistent selectors, deterministic stepping, object capture and a
 regression test for a real gameplay rule (the wall stops the hero at
 `x = 1.52`).
@@ -10,42 +10,42 @@ regression test for a real gameplay rule (the wall stops the hero at
 ```bash
 pnpm install
 pnpm build              # produces dist/, which the example server serves
-pnpm --filter gameprob-example-spinner start
-# → http://127.0.0.1:5199/?gameprob=1
+pnpm --filter agent-playtest-example-spinner start
+# → http://127.0.0.1:5199/?agent-playtest=1
 ```
 
 The server is a plain Node static server — no bundler — so `three` and the
 bridge are served straight from the repository:
 
 - `/vendor/three/*` → `node_modules/three/build/*`
-- `/vendor/gameprob/*` → `dist/*`
+- `/vendor/agent-playtest/*` → `dist/*`
 
 Because there is no bundler, the development-only bridge call lives inline in
-`main.js` rather than in `.gameprob/bridge.ts`. `?gameprob=1` is **not** a
+`main.js` rather than in `.agent-playtest/bridge.ts`. `?agent-playtest=1` is **not** a
 security boundary: a real project must gate the bridge behind its bundler's
 dev-only condition and verify the production build excludes it.
 
-## Drive it with GameProb
+## Drive it with Agent Playtest
 
 ```bash
-gameprob --project examples/spinner open
-gameprob --project examples/spinner snapshot
-gameprob --project examples/spinner inspect gameprob:id=main-hero
-gameprob --project examples/spinner act keydown ArrowRight
-gameprob --project examples/spinner act step 240
-gameprob --project examples/spinner inspect gameprob:id=main-hero
-gameprob --project examples/spinner capture gameprob:id=main-hero --views front,right
-gameprob --project examples/spinner run
-gameprob --project examples/spinner close
+agent-playtest --project examples/spinner open
+agent-playtest --project examples/spinner snapshot
+agent-playtest --project examples/spinner inspect agent-playtest:id=main-hero
+agent-playtest --project examples/spinner act keydown ArrowRight
+agent-playtest --project examples/spinner act step 240
+agent-playtest --project examples/spinner inspect agent-playtest:id=main-hero
+agent-playtest --project examples/spinner capture agent-playtest:id=main-hero --views front,right
+agent-playtest --project examples/spinner run
+agent-playtest --project examples/spinner close
 ```
 
 ## What it demonstrates
 
-| GameProb feature | Where |
+| Agent Playtest feature | Where |
 |---|---|
-| Persistent selectors | `hero.userData.gameprob.id = "main-hero"` |
+| Persistent selectors | `hero.userData.agentPlaytest.id = "main-hero"` |
 | Scene traversal and inspection | floor, hero, wall, obstacle meshes |
 | Real browser input | `ArrowRight`/`ArrowLeft` key handlers |
 | Controlled simulation | `simulation.pause/step/reset/state/action` hooks |
-| Object capture | `capture gameprob:id=main-hero --views front,right` |
-| Durable regression tests | `.gameprob/tests/spinner.spec.ts` |
+| Object capture | `capture agent-playtest:id=main-hero --views front,right` |
+| Durable regression tests | `.agent-playtest/tests/spinner.spec.ts` |

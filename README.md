@@ -1,22 +1,22 @@
-# GameProb
+# Agent Playtest
 
 A small, **local** CLI that lets a coding agent inspect, interact with and test
 2D/3D browser games — and turn what it learns into durable, repeatable tests.
 
-GameProb contains **no AI model, no cloud service and no autonomous loop**. Your
-agent (Claude Code, Codex, Cursor, …) is the intelligence; GameProb is the
+Agent Playtest contains **no AI model, no cloud service and no autonomous loop**. Your
+agent (Claude Code, Codex, Cursor, …) is the intelligence; Agent Playtest is the
 deterministic instrument it points at the game.
 
 ```bash
-gameprob init                       # create the .gameprob/ project workspace
-gameprob open http://127.0.0.1:5173/?gameprob=1
-gameprob snapshot                   # bounded scene tree with @gN refs
-gameprob inspect @g2                # transform, bounds, geometry, warnings
-gameprob act keydown ArrowRight
-gameprob act step 120               # deterministic ticks, not wall-clock waiting
-gameprob capture @g2 --views front,right
-gameprob run                        # execute .gameprob/tests/**/*.spec.ts
-gameprob close
+agent-playtest init                       # create the .agent-playtest/ project workspace
+agent-playtest open http://127.0.0.1:5173/?agent-playtest=1
+agent-playtest snapshot                   # bounded scene tree with @gN refs
+agent-playtest inspect @g2                # transform, bounds, geometry, warnings
+agent-playtest act keydown ArrowRight
+agent-playtest act step 120               # deterministic ticks, not wall-clock waiting
+agent-playtest capture @g2 --views front,right
+agent-playtest run                        # execute .agent-playtest/tests/**/*.spec.ts
+agent-playtest close
 ```
 
 ## Why
@@ -29,51 +29,51 @@ Playwright test that reproduces the bug is doing engineering.
 - **Honest**: unsupported checks are reported as unsupported. A blank frame is a
   failure, not a screenshot. Truncation is always reported.
 - **Local**: a per-project daemon on a Unix socket, a machine runtime under
-  `~/.gameprob/`, project knowledge under `<project>/.gameprob/`.
-- **Agent-shaped**: `gameprob skills get core` prints the guide for the installed
+  `~/.agent-playtest/`, project knowledge under `<project>/.agent-playtest/`.
+- **Agent-shaped**: `agent-playtest skills get core` prints the guide for the installed
   version, so instructions never drift from the binary.
 
 ## Install
 
 ```bash
-npm install --save-dev gameprob
+npm install --save-dev agent-playtest
 npx playwright install chromium   # or point at a system browser, see below
 ```
 
 Requires **Node 24+**. The package ships the CLI, the in-page bridge
-(`gameprob/bridge`), the Playwright fixture (`gameprob/test`), the project
+(`agent-playtest/bridge`), the Playwright fixture (`agent-playtest/test`), the project
 templates and the versioned guides.
 
 ## Getting a browser that can render WebGL
 
-GameProb launches Chromium through Playwright.
+Agent Playtest launches Chromium through Playwright.
 
 - **Normal machines**: `npx playwright install chromium` is enough.
 - **musl/Alpine containers** (Playwright's glibc bundles cannot run there):
-  install the distro Chromium and point GameProb at it:
+  install the distro Chromium and point Agent Playtest at it:
 
   ```bash
   apk add chromium chromium-swiftshader   # swiftshader is required for WebGL
-  export GAMEPROB_CHROMIUM_PATH=/usr/bin/chromium
+  export AGENT_PLAYTEST_CHROMIUM_PATH=/usr/bin/chromium
   ```
 
   `chromium-swiftshader` provides `libvk_swiftshader.so`; without it Chromium
   reports `{"webgl": false}` and object capture fails honestly.
 
-`GAMEPROB_CHROMIUM_PATH` (env) outranks `browser.executablePath` (config), which
+`AGENT_PLAYTEST_CHROMIUM_PATH` (env) outranks `browser.executablePath` (config), which
 outranks the Playwright default.
 
 ## The project workspace
 
-`gameprob init` creates `<project>/.gameprob/` and never overwrites your files:
+`agent-playtest init` creates `<project>/.agent-playtest/` and never overwrites your files:
 
 ```
-.gameprob/
+.agent-playtest/
 ├── AGENTS.md      # the contract your coding agent reads
 ├── config.json    # url, viewport, browser, session, output
-├── bridge.ts      # how the game exposes scene/camera/renderer to GameProb
+├── bridge.ts      # how the game exposes scene/camera/renderer to Agent Playtest
 ├── progress.md    # what the agent verified, and what it did not
-├── tests/         # durable specs, run by `gameprob run`
+├── tests/         # durable specs, run by `agent-playtest run`
 └── bugs/          # evidence-backed findings
 ```
 
@@ -86,7 +86,7 @@ of silently replacing your edits.
 {
   "schemaVersion": 1,
   "project": { "name": "spinner", "engineHint": "three" },
-  "game": { "url": "http://127.0.0.1:5199/?gameprob=1" },
+  "game": { "url": "http://127.0.0.1:5199/?agent-playtest=1" },
   "browser": {
     "headless": true,
     "backend": "chromium-shell",
@@ -94,24 +94,24 @@ of silently replacing your edits.
     "executablePath": "/usr/bin/chromium"
   },
   "session": { "idleTimeoutMs": 1800000 },
-  "output": { "directory": ".gameprob/output" }
+  "output": { "directory": ".agent-playtest/output" }
 }
 ```
 
 Unknown keys are rejected — a typo fails loudly instead of being ignored.
-Precedence is `flags > environment > .gameprob/config.json > ~/.gameprob/config.json > defaults`.
+Precedence is `flags > environment > .agent-playtest/config.json > ~/.agent-playtest/config.json > defaults`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `init [--link-agents]` | Create/refresh `.gameprob/`; `--link-agents` adds one reference to the root `AGENTS.md` |
+| `init [--link-agents]` | Create/refresh `.agent-playtest/`; `--link-agents` adds one reference to the root `AGENTS.md` |
 | `open [url] [--headed] [--allow-remote]` | Start the daemon + Chromium, navigate, report bridge/readiness/capabilities |
 | `snapshot [--depth N] [--limit N] [--delta]` | Bounded scene tree with session-local `@gN` refs |
 | `inspect <@ref\|selector> [--details]` | Transform, bounds, geometry/material, parent/children, warnings |
 | `act keydown\|keyup\|press\|click\|step` | Real browser input, or deterministic simulation stepping |
 | `capture [@ref] [--page] [--views …] [--out …] [--overwrite]` | Page or object screenshots, verified non-blank |
-| `run [spec] [--workers N]` | Execute `.gameprob/tests/**/*.spec.ts` with Playwright Test |
+| `run [spec] [--workers N]` | Execute `.agent-playtest/tests/**/*.spec.ts` with Playwright Test |
 | `close` | Stop the browser session and this project's daemon |
 | `skills get core [--full]` | The guide bundled with the installed version |
 
@@ -121,10 +121,10 @@ allowed unless you pass `--allow-remote`.
 ### Selectors
 
 ```bash
-gameprob inspect gameprob:id=main-hero   # persistent — use this in saved tests
-gameprob inspect name:Hero               # only when the name is unique
-gameprob inspect type:SkinnedMesh        # first match, with a warning
-gameprob inspect @g2                     # session-local; never in a saved test
+agent-playtest inspect agent-playtest:id=main-hero   # persistent — use this in saved tests
+agent-playtest inspect name:Hero               # only when the name is unique
+agent-playtest inspect type:SkinnedMesh        # first match, with a warning
+agent-playtest inspect @g2                     # session-local; never in a saved test
 ```
 
 `@gN` refs are invalidated by reload/reset and fail with `STALE_REF`.
@@ -132,7 +132,7 @@ gameprob inspect @g2                     # session-local; never in a saved test
 ## Writing tests
 
 ```ts
-import { expect, test } from "gameprob/test";
+import { expect, test } from "agent-playtest/test";
 
 test("the wall stops the hero", async ({ game }) => {
   await game.reset("near-wall");
@@ -151,9 +151,9 @@ The fixture gives you `open`, `snapshot`, `inspect`, `act`, `capture`,
 registered simulation hooks. Capability-dependent methods throw a typed
 `CAPABILITY_UNAVAILABLE` error rather than pretending to work.
 
-`gameprob run` executes specs in **isolated browser contexts** — never in the
+`agent-playtest run` executes specs in **isolated browser contexts** — never in the
 daemon's interactive page — and writes `result.json`, a Playwright JSON report
-and a log under `.gameprob/output/run-<timestamp>/`.
+and a log under `.agent-playtest/output/run-<timestamp>/`.
 
 ## Exit codes
 
@@ -161,7 +161,7 @@ and a log under `.gameprob/output/run-<timestamp>/`.
 |---|---|---|
 | `INVALID_ARGUMENT` | 2 | Flag or argument invalid |
 | `CONFIG_INVALID` | 2 | Config parse/validation failure |
-| `PROJECT_NOT_INITIALIZED` | 2 | Missing `.gameprob/` workspace |
+| `PROJECT_NOT_INITIALIZED` | 2 | Missing `.agent-playtest/` workspace |
 | `SESSION_NOT_FOUND` | 3 | No active browser session |
 | `BROWSER_LAUNCH_FAILED` | 3 | Chromium could not launch |
 | `NAVIGATION_FAILED` | 3 | Navigation/timeout |
@@ -184,7 +184,7 @@ controllable simulation. It is the vertical slice the integration tests drive:
 
 ```bash
 node examples/spinner/server.mjs            # http://127.0.0.1:5199
-GAMEPROB_CHROMIUM_PATH=/usr/bin/chromium \
+AGENT_PLAYTEST_CHROMIUM_PATH=/usr/bin/chromium \
   node dist/cli.js --project examples/spinner open --json
 ```
 

@@ -1,6 +1,6 @@
-# GameProb reference (v{{VERSION}})
+# Agent Playtest reference (v{{VERSION}})
 
-This is the `--full` companion to `gameprob skills get core`. It documents the
+This is the `--full` companion to `agent-playtest skills get core`. It documents the
 JSON envelope, capabilities, the bridge contract and troubleshooting.
 
 ## JSON envelope
@@ -30,7 +30,7 @@ Failures keep the same outer shape with `ok: false` and an `error` object:
     "code": "CAPABILITY_UNAVAILABLE",
     "message": "Controlled simulation is not connected for this project.",
     "missing": ["simulation.pause", "simulation.step"],
-    "hint": "Ask the coding agent to add the optional simulation hooks in .gameprob/bridge.ts."
+    "hint": "Ask the coding agent to add the optional simulation hooks in .agent-playtest/bridge.ts."
   },
   "warnings": [],
   "durationMs": 0
@@ -64,10 +64,10 @@ from the connected bridge and are reported with a `sources` map.
 Operations outside the current tier return `CAPABILITY_UNAVAILABLE` with the
 missing hook names.
 
-## Bridge contract (`gameprob/bridge`)
+## Bridge contract (`agent-playtest/bridge`)
 
 ```ts
-import { connect } from "gameprob/bridge";
+import { connect } from "agent-playtest/bridge";
 
 connect({
   engine: "three",
@@ -80,29 +80,29 @@ connect({
 ```
 
 - Must be called in the browser, from a **development-only** code path.
-- Registers `window.__GAMEPROB_BRIDGE__`; re-registering disposes the previous
+- Registers `window.__AGENT_PLAYTEST_BRIDGE__`; re-registering disposes the previous
   connection (safe under HMR).
 - Never mutates game state permanently. Object capture clones the camera and
   restores `renderer.render` in a `finally` block.
-- `?gameprob=1` is not a security boundary: verify the production build excludes
+- `?agent-playtest=1` is not a security boundary: verify the production build excludes
   the bridge.
 
 Give important objects a stable identity so saved tests do not depend on
 session-local refs:
 
 ```ts
-heroRoot.userData.gameprob = { id: "main-hero", role: "character" };
+heroRoot.userData.agentPlaytest = { id: "main-hero", role: "character" };
 ```
 
 ## Configuration
 
-`.gameprob/config.json` (schema version 1):
+`.agent-playtest/config.json` (schema version 1):
 
 ```json
 {
   "schemaVersion": 1,
   "project": { "name": "my-game", "engineHint": "three" },
-  "game": { "url": "http://127.0.0.1:5173/?gameprob=1" },
+  "game": { "url": "http://127.0.0.1:5173/?agent-playtest=1" },
   "browser": {
     "headless": true,
     "backend": "chromium-shell",
@@ -110,11 +110,11 @@ heroRoot.userData.gameprob = { id: "main-hero", role: "character" };
     "deviceScaleFactor": 1
   },
   "session": { "idleTimeoutMs": 1800000 },
-  "output": { "directory": ".gameprob/output" }
+  "output": { "directory": ".agent-playtest/output" }
 }
 ```
 
-Precedence: explicit flags > project config > `~/.gameprob/config.json` > built-in
+Precedence: explicit flags > project config > `~/.agent-playtest/config.json` > built-in
 defaults. Unknown keys and invalid values are rejected with a diagnostic; schema
 versions are never migrated silently.
 
@@ -125,7 +125,7 @@ screenshot baselines across backends.
 ## Evidence layout
 
 ```
-.gameprob/output/<run-id>/
+.agent-playtest/output/<run-id>/
 ├── result.json
 ├── screenshots/            (or capture-<timestamp>/ with PNGs + manifest)
 ├── logs/browser-console.jsonl
@@ -145,24 +145,24 @@ npx playwright install --only-shell chromium
 
 **`BRIDGE_NOT_CONNECTED`** — the page loaded without a bridge. Check that the
 development-only `connect()` call actually runs, that the URL carries
-`?gameprob=1`, and that the dev server was restarted after editing the source.
+`?agent-playtest=1`, and that the dev server was restarted after editing the source.
 
 **`CAPABILITY_UNAVAILABLE` with `simulation.*`** — the project has not exposed
-`pause`/`step`. GameProb will not pretend to run a controlled simulation; use
+`pause`/`step`. Agent Playtest will not pretend to run a controlled simulation; use
 real browser input and describe the limitation instead.
 
 **`STALE_REF`** — the page navigated, reloaded or replaced its scene. Run
-`gameprob snapshot` again, and use `gameprob:id=<id>` selectors in saved tests.
+`agent-playtest snapshot` again, and use `agent-playtest:id=<id>` selectors in saved tests.
 
-**`IPC_PROTOCOL_MISMATCH`** — a daemon from a different GameProb version is
-running. `gameprob close` (or reinstall) starts a version-matched daemon.
+**`IPC_PROTOCOL_MISMATCH`** — a daemon from a different Agent Playtest version is
+running. `agent-playtest close` (or reinstall) starts a version-matched daemon.
 
 **Object capture looks wrong or blank** — confirm the subject has measurable
 geometry (`inspect --details`), that it is visible, and that the renderer is a
 `WebGLRenderer`. Blank frames are reported as failures on purpose.
 
-**The daemon is not responding** — logs live in `~/.gameprob/logs/`, session
-metadata in `~/.gameprob/sessions/`. `gameprob close` is always safe.
+**The daemon is not responding** — logs live in `~/.agent-playtest/logs/`, session
+metadata in `~/.agent-playtest/sessions/`. `agent-playtest close` is always safe.
 
 ## Performance expectations
 

@@ -4,24 +4,36 @@ Design decisions made while implementing `TECH_DOCS.md`, including every place
 where the implementation deliberately differs from the document. Each entry
 states the decision, why, and what it costs.
 
-## 1. Repository vs package name
+## 1. Naming: `agent-playtest` everywhere
 
-`TECH_DOCS.md` calls the project *GameProb* while the GitHub repository is
-`agent-playtest`.
+`TECH_DOCS.md` calls the project *GameProb*, and the first implementation followed
+it: package `gameprob`, binary `gameprob`, `.gameprob/` project workspace,
+`gameprob/bridge`, `gameprob/test`, `GAMEPROB_*` environment variables.
 
-**Decision**: repository, package, CLI binary, workspace and `gameprob/*`
-subpath imports are all **`gameprob`**. The repository keeps its given name.
+**Decision (revised)**: the tool is **`agent-playtest`** in every place a person or
+an agent types or reads it — package name, CLI binary, `.agent-playtest/` project
+workspace, `~/.agent-playtest/` machine home, `agent-playtest/bridge` and
+`agent-playtest/test` imports, `AGENT_PLAYTEST_*` environment variables, the
+`__AGENT_PLAYTEST_BRIDGE__` page global, and the `agent-playtest:<id>` selector.
+The repository keeps its given name.
 
-**Why**: a package named `gameprob` matching its binary and its `.gameprob/`
-project directory is one less translation an agent has to make. Renaming the
-repo is not ours to do.
+**Why**: those names are the whole vocabulary of a run. Leaving any of them as
+`gameprob` means an agent that reads the repository, installs the package and
+inspects a failure has to learn that one product has two names spelled
+differently in each direction (`.gameprob/`, `gameprob/test`, `GAMEPROB_HOME`).
+Matching the binary to the repository removes that translation entirely.
+
+**Cost**: `.gameprob/` is the name `TECH_DOCS.md` used, so the document and the
+implementation no longer agree on spelling — every deliberate doc deviation is
+listed here for that reason. There is no released version, so no project needs a
+migration path.
 
 ## 2. pnpm
 
 **Decision**: pnpm with a committed `pnpm-lock.yaml`, plus a workspace so
-`examples/spinner` depends on `gameprob: workspace:*`.
+`examples/spinner` depends on `agent-playtest: workspace:*`.
 
-**Why**: the example must import `gameprob/test` exactly as a real consumer
+**Why**: the example must import `agent-playtest/test` exactly as a real consumer
 would, which needs a real resolution path — not a `file:` shortcut into `dist/`.
 
 ## 3. No `three` runtime dependency
@@ -29,7 +41,7 @@ would, which needs a real resolution path — not a `file:` shortcut into `dist/
 **Decision**: the Three.js adapter is written against **structural interfaces**
 (`src/bridge/adapters/three-types.ts`). `three` is a dev/example dependency only.
 
-**Why**: `gameprob/bridge` is bundled into the *consumer's* game. A runtime
+**Why**: `agent-playtest/bridge` is bundled into the *consumer's* game. A runtime
 dependency on a specific Three.js version would force version negotiation on
 every project, and the adapter only needs a handful of shapes (Object3D,
 Mesh, Camera, WebGLRenderer, material, skeleton).
@@ -90,7 +102,7 @@ process behind that the user never asked for.
 
 **Decision**: when the per-project socket path would exceed the platform limit
 (~104 bytes on Linux), the socket moves to `os.tmpdir()`. The meta file stays in
-`~/.gameprob/sessions/`.
+`~/.agent-playtest/sessions/`.
 
 **Why**: deep project paths are common in CI and monorepos, and a truncated
 socket path is an inscrutable failure.
@@ -128,10 +140,10 @@ an absolute path silently makes that join produce the wrong file.
 
 ## 12. Templates are versioned, never auto-applied
 
-**Decision**: every template carries `gameprob-template-version: N`. `init`
+**Decision**: every template carries `agent-playtest-template-version: N`. `init`
 reports a mismatch and leaves the user's file alone.
 
-**Why**: `.gameprob/AGENTS.md` and `bridge.ts` are meant to be edited by the
+**Why**: `.agent-playtest/AGENTS.md` and `bridge.ts` are meant to be edited by the
 project. Silently replacing them would destroy work and, worse, change the
 project's contract without telling anyone.
 
@@ -141,7 +153,7 @@ project's contract without telling anyone.
 arguments (`playwright test --config … <files>`).
 
 **Why**: the first implementation only filtered the *summary*, so an explicit
-`gameprob run foo.spec.ts` still executed every spec. A command must not run
+`agent-playtest run foo.spec.ts` still executed every spec. A command must not run
 more than it was asked to run.
 
 ## 14. Integration tests drive the built CLI
@@ -164,7 +176,7 @@ opt-in via `pnpm test:integration` and excluded from `pnpm test`.
 
 **Why**: the integration suite asserts on CLI stdout/exit codes as much as on
 the browser, and one runner with one reporter keeps failures readable. The
-in-browser specs *are* still real Playwright specs — `gameprob run` executes
+in-browser specs *are* still real Playwright specs — `agent-playtest run` executes
 them through Playwright Test, which is the path that matters for consumers.
 
 ## 16. One example game, not three (deviation)
@@ -179,10 +191,10 @@ collision rule (the wall clamp) and a deterministic simulation with
 routing while testing the same adapter. The Phaser path is a documented plan,
 not a shipped adapter, so a Phaser example would be a lie.
 
-## 17. `browser.executablePath` and `GAMEPROB_CHROMIUM_PATH`
+## 17. `browser.executablePath` and `AGENT_PLAYTEST_CHROMIUM_PATH`
 
 **Decision**: add a config field and an environment variable that point
-GameProb at a system Chromium.
+Agent Playtest at a system Chromium.
 
 **Why**: Playwright's bundled Chromium is built against glibc and cannot run on
 musl (Alpine) images — it dies with `__memset_chk: symbol not found`. Without
@@ -207,13 +219,13 @@ launch works: `WebGL 2.0 (OpenGL ES 3.0 Chromium) | ANGLE (Google, Vulkan 1.3.0
 (SwiftShader Device (Subzero)), SwiftShader driver)`. Baking in flags would have
 been superstition.
 
-## 19. Test isolation via `GAMEPROB_HOME`
+## 19. Test isolation via `AGENT_PLAYTEST_HOME`
 
-**Decision**: every test that touches machine state sets `GAMEPROB_HOME` to a
+**Decision**: every test that touches machine state sets `AGENT_PLAYTEST_HOME` to a
 temporary directory.
 
 **Why**: the machine runtime holds session metadata and the daemon socket. A
-test that writes to the developer's real `~/.gameprob/` can hijack a live
+test that writes to the developer's real `~/.agent-playtest/` can hijack a live
 session or leave a daemon behind.
 
 ## 20. Global flags are declared on every leaf command
@@ -221,7 +233,7 @@ session or leave a daemon behind.
 **Decision**: `--project`, `--json` and `--debug` are attached to each leaf
 command (via `withGlobals`) rather than only to the root program.
 
-**Why**: `gameprob init --project ../game` is what people type, and Commander
+**Why**: `agent-playtest init --project ../game` is what people type, and Commander
 does not accept parent options after the subcommand name. `docs-parity.test.ts`
 now enforces this for every documented leaf command.
 

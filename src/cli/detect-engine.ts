@@ -36,7 +36,7 @@ const SKIP_DIRECTORIES = new Set([
   "build",
   "out",
   "coverage",
-  ".gameprob",
+  ".agent-playtest",
   ".next",
   ".svelte-kit",
 ]);

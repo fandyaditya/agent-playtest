@@ -79,9 +79,9 @@ describe("parseRef", () => {
 });
 
 describe("resolveSelector", () => {
-  it("resolves a unique gameprob.id", () => {
+  it("resolves a unique agent-playtest.id", () => {
     const result = resolveSelector(
-      "gameprob:id=main-hero",
+      "agent-playtest:id=main-hero",
       source([{ id: "main-hero", name: "Hero" }, { name: "Wall" }]),
     );
     expect(result.kind).toBe("found");
@@ -89,13 +89,13 @@ describe("resolveSelector", () => {
   });
 
   it("reports a missing id instead of guessing", () => {
-    const result = resolveSelector("gameprob:id=nope", source([{ name: "Hero" }]));
+    const result = resolveSelector("agent-playtest:id=nope", source([{ name: "Hero" }]));
     expect(result.kind).toBe("missing");
   });
 
   it("rejects duplicate ids as ambiguous", () => {
     const result = resolveSelector(
-      "gameprob:id=hero",
+      "agent-playtest:id=hero",
       source([
         { id: "hero", name: "Hero" },
         { id: "hero", name: "HeroClone" },

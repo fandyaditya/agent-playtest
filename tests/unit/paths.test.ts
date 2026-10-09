@@ -19,30 +19,30 @@ import {
 let scratch = "";
 
 beforeEach(() => {
-  scratch = mkdtempSync(join(tmpdir(), "gameprob-paths-"));
-  process.env.GAMEPROB_HOME = join(scratch, "home");
+  scratch = mkdtempSync(join(tmpdir(), "agent-playtest-paths-"));
+  process.env.AGENT_PLAYTEST_HOME = join(scratch, "home");
 });
 
 afterEach(() => {
   rmSync(scratch, { recursive: true, force: true });
-  delete process.env.GAMEPROB_HOME;
+  delete process.env.AGENT_PLAYTEST_HOME;
 });
 
 describe("machine home", () => {
-  it("honours GAMEPROB_HOME so tests never touch the real home directory", () => {
+  it("honours AGENT_PLAYTEST_HOME so tests never touch the real home directory", () => {
     expect(machineHome()).toBe(resolve(join(scratch, "home")));
   });
 });
 
 describe("projectPaths", () => {
-  it("keeps every generated artifact inside .gameprob/", () => {
+  it("keeps every generated artifact inside .agent-playtest/", () => {
     const paths = projectPaths("/game");
-    expect(paths.workspace).toBe("/game/.gameprob");
-    expect(paths.configFile).toBe("/game/.gameprob/config.json");
-    expect(paths.bridgeFile).toBe("/game/.gameprob/bridge.ts");
-    expect(paths.testsDir).toBe("/game/.gameprob/tests");
-    expect(paths.bugsDir).toBe("/game/.gameprob/bugs");
-    expect(paths.outputDir).toBe("/game/.gameprob/output");
+    expect(paths.workspace).toBe("/game/.agent-playtest");
+    expect(paths.configFile).toBe("/game/.agent-playtest/config.json");
+    expect(paths.bridgeFile).toBe("/game/.agent-playtest/bridge.ts");
+    expect(paths.testsDir).toBe("/game/.agent-playtest/tests");
+    expect(paths.bugsDir).toBe("/game/.agent-playtest/bugs");
+    expect(paths.outputDir).toBe("/game/.agent-playtest/output");
   });
 });
 
@@ -50,7 +50,9 @@ describe("resolveInside", () => {
   it("accepts a path inside the root", () => {
     const root = join(scratch, "game");
     mkdirSync(root, { recursive: true });
-    expect(resolveInside(root, ".gameprob/config.json")).toBe(join(root, ".gameprob/config.json"));
+    expect(resolveInside(root, ".agent-playtest/config.json")).toBe(
+      join(root, ".agent-playtest/config.json"),
+    );
   });
 
   it("rejects .. traversal", () => {

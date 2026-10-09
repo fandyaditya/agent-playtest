@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * `gameprob` CLI.
+ * `agent-playtest` CLI.
  *
  * A thin, deterministic surface over the daemon. It owns argument parsing,
  * output policy and exit codes; it never makes gameplay decisions and never
@@ -11,7 +11,7 @@
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Command, CommanderError } from "commander";
-import { EXIT_CODES, GameProbError, toGameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, EXIT_CODES, toAgentPlaytestError } from "../shared/errors.ts";
 import { packageVersion } from "../shared/paths.ts";
 import { runAct } from "./commands/act.ts";
 import { runCapture } from "./commands/capture.ts";
@@ -35,7 +35,7 @@ export function buildProgram(): Command {
   const program = new Command();
 
   program
-    .name("gameprob")
+    .name("agent-playtest")
     .description("Inspect, interact with, and test 2D/3D browser games from the terminal.")
     .version(packageVersion(), "-v, --version")
     .showHelpAfterError()
@@ -47,8 +47,10 @@ export function buildProgram(): Command {
     .option("--debug", "print stack traces and internal diagnostics");
 
   withGlobals(program.command("init"))
-    .description("create or refresh the .gameprob/ project workspace (never overwrites your files)")
-    .option("--link-agents", "append one GameProb reference to the project root AGENTS.md")
+    .description(
+      "create or refresh the .agent-playtest/ project workspace (never overwrites your files)",
+    )
+    .option("--link-agents", "append one Agent Playtest reference to the project root AGENTS.md")
     .action(async function (this: Command, options: { linkAgents?: boolean }) {
       await execute("init", this, () => {
         const result = runInit({
@@ -92,7 +94,7 @@ export function buildProgram(): Command {
 
   withGlobals(program.command("inspect"))
     .description("report facts about one object: transform, bounds, geometry, warnings")
-    .argument("<selector>", "@gN ref, gameprob:id=<id>, name:<name>, or type:<type>")
+    .argument("<selector>", "@gN ref, agent-playtest:id=<id>, name:<name>, or type:<type>")
     .option("--details", "include materials, textures, bones and renderer statistics")
     .action(async function (this: Command, selector: string, options: { details?: boolean }) {
       await execute("inspect", this, () =>
@@ -126,8 +128,8 @@ export function buildProgram(): Command {
     });
 
   withGlobals(program.command("run"))
-    .description("execute .gameprob/tests/**/*.spec.ts with Playwright Test")
-    .argument("[spec]", "a spec file or directory; defaults to .gameprob/tests")
+    .description("execute .agent-playtest/tests/**/*.spec.ts with Playwright Test")
+    .argument("[spec]", "a spec file or directory; defaults to .agent-playtest/tests")
     .option("--workers <n>", "parallel workers (default 1 for GPU predictability)")
     .action(async function (
       this: Command,
@@ -153,10 +155,10 @@ export function buildProgram(): Command {
     .action(async function (this: Command, name: string, options: { full?: boolean }) {
       await execute("skills", this, () => {
         if (name !== "core") {
-          throw new GameProbError({
+          throw new AgentPlaytestError({
             code: "INVALID_ARGUMENT",
             message: `Unknown guide "${name}".`,
-            hint: "Available guides: core. Run `gameprob skills get core`.",
+            hint: "Available guides: core. Run `agent-playtest skills get core`.",
           });
         }
         const result = runSkillsGetCore({ full: options.full === true });
@@ -172,7 +174,7 @@ export function buildProgram(): Command {
 
 /**
  * Global flags are declared on every subcommand as well, so they work both
- * before and after the command name: `gameprob --json open` and `gameprob open --json`.
+ * before and after the command name: `agent-playtest --json open` and `agent-playtest open --json`.
  */
 function withGlobals(command: Command): Command {
   return command
@@ -187,7 +189,7 @@ function pickProject(command: Command): { project?: string } {
 }
 
 function mergeGlobals(command: Command): GlobalOptions {
-  // Walk to the root so `gameprob --json skills get core` works too.
+  // Walk to the root so `agent-playtest --json skills get core` works too.
   const chain: Command[] = [];
   let current: Command | undefined = command;
   while (current) {
@@ -217,7 +219,7 @@ async function execute<T>(
       ...(result.sessionId ? { sessionId: result.sessionId } : {}),
     });
   } catch (error) {
-    process.exitCode = output.failure(name, toGameProbError(error));
+    process.exitCode = output.failure(name, toAgentPlaytestError(error));
   }
 }
 
@@ -240,9 +242,9 @@ export async function main(argv: readonly string[] = process.argv): Promise<void
 /**
  * Was this file the program Node was asked to run?
  *
- * A package binary is a symlink (`node_modules/.bin/gameprob`), and ESM resolves
+ * A package binary is a symlink (`node_modules/.bin/agent-playtest`), and ESM resolves
  * `import.meta.url` to the *real* path, so the two must be compared as real
- * paths — otherwise `npx gameprob` would silently do nothing and exit 0.
+ * paths — otherwise `npx agent-playtest` would silently do nothing and exit 0.
  */
 function invokedDirectly(): boolean {
   const entry = process.argv[1];

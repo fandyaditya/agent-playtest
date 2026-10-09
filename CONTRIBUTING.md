@@ -29,7 +29,7 @@ browser instead:
 
 ```bash
 apk add chromium chromium-swiftshader    # swiftshader provides WebGL
-export GAMEPROB_CHROMIUM_PATH=/usr/bin/chromium
+export AGENT_PLAYTEST_CHROMIUM_PATH=/usr/bin/chromium
 ```
 
 ## Commands
@@ -59,7 +59,7 @@ Keep the dependency directions one-way (see `TECH_DOCS.md` §11):
 - `src/browser/` — Playwright driver + the abstract bridge protocol.
 - `src/daemon/` — the per-project process, IPC framing, session lifecycle.
 - `src/cli/` — argument parsing, output policy, exit codes. Never imports Three.js.
-- `src/test/` — the Playwright fixture consumers import as `gameprob/test`.
+- `src/test/` — the Playwright fixture consumers import as `agent-playtest/test`.
 
 The Three.js adapter talks to **structural interfaces** (`three-types.ts`), so
 `three` is a dev/example dependency, never a runtime one.
@@ -94,7 +94,7 @@ refs, selector resolution, bounds, inspection and view planning. Reuse
   Chromium, the bundled example game.
 - **Package** (`scripts/verify-package.mjs`) — what `npm publish` would ship.
 - **Install** (`scripts/verify-install.mjs`) — the tarball installed into a
-  throwaway project and driven through `node_modules/.bin/gameprob`. This is the
+  throwaway project and driven through `node_modules/.bin/agent-playtest`. This is the
   only check that exercises the real consumer entry point (a symlink), so a
   packaging or shebang/realpath regression cannot hide in the repository.
 

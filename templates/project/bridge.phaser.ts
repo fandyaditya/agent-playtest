@@ -1,4 +1,4 @@
-// gameprob-template-version: 1
+// agent-playtest-template-version: 1
 //
 // Phaser variant of the project connector.
 //
@@ -7,7 +7,7 @@
 // else. Keep this file as the integration sketch for the second engine
 // milestone; do not wire it up expecting it to work yet.
 
-import { connect } from "gameprob/bridge";
+import { connect } from "agent-playtest/bridge";
 
 export function connectGame(refs: { game: unknown }) {
   return connect({

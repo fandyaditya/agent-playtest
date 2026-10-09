@@ -99,7 +99,7 @@ export type SelectorResolution<T> =
 
 /**
  * Supported persistent selectors:
- * - `gameprob:id=<id>` — explicit, adapter-known identifier (preferred)
+ * - `agent-playtest:id=<id>` — explicit, adapter-known identifier (preferred)
  * - `name:<name>` — best effort, only when unique
  * - `three:type:<Type>` / `type:<Type>` — all objects of one engine type
  */
@@ -108,16 +108,16 @@ export function resolveSelector<T>(
   source: SelectorSource<T>,
 ): SelectorResolution<T> {
   const value = selector.trim();
-  if (value.startsWith("gameprob:id=")) {
-    const id = value.slice("gameprob:id=".length);
+  if (value.startsWith("agent-playtest:id=")) {
+    const id = value.slice("agent-playtest:id=".length);
     const matches = source.candidates.filter((c) => source.idOf(c) === id);
     if (matches.length === 0)
-      return { kind: "missing", message: `No object has gameprob.id "${id}".` };
+      return { kind: "missing", message: `No object has agent-playtest.id "${id}".` };
     if (matches.length > 1) {
       return {
         kind: "ambiguous",
         matches: matches.map((m) => `${source.engineTypeOf(m)} "${source.nameOf(m)}"`),
-        message: `Duplicate gameprob.id "${id}" — add a unique id to exactly one object.`,
+        message: `Duplicate agent-playtest.id "${id}" — add a unique id to exactly one object.`,
       };
     }
     return { kind: "found", object: matches[0] as T, warnings: [] };
@@ -131,7 +131,7 @@ export function resolveSelector<T>(
       return {
         kind: "ambiguous",
         matches: matches.map((m) => `${source.engineTypeOf(m)} "${source.nameOf(m)}"`),
-        message: `Name "${name}" matches ${matches.length} objects; use gameprob:id=<id> instead.`,
+        message: `Name "${name}" matches ${matches.length} objects; use agent-playtest:id=<id> instead.`,
       };
     }
     return { kind: "found", object: matches[0] as T, warnings: [] };
@@ -152,7 +152,7 @@ export function resolveSelector<T>(
 
   return {
     kind: "missing",
-    message: `Unrecognized selector "${selector}". Use @gN from a snapshot, "gameprob:id=<id>", "name:<name>" or "type:<Type>".`,
+    message: `Unrecognized selector "${selector}". Use @gN from a snapshot, "agent-playtest:id=<id>", "name:<name>" or "type:<Type>".`,
   };
 }
 

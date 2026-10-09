@@ -165,7 +165,7 @@ function duplicateIdWarnings<T>(adapter: EngineAdapter<T>, objects: T[]): Snapsh
     warnings.push({
       check: "selector.duplicate-id",
       confidence: "high",
-      message: `gameprob.id "${id}" is used by ${list.length} objects; selectors using it are ambiguous. Give exactly one object this id.`,
+      message: `agent-playtest.id "${id}" is used by ${list.length} objects; selectors using it are ambiguous. Give exactly one object this id.`,
     });
   }
   return warnings;

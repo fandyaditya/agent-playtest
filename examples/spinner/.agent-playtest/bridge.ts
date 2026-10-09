@@ -1,14 +1,14 @@
-// gameprob-template-version: 1
+// agent-playtest-template-version: 1
 //
-// Agent-maintained connector between this game and GameProb.
+// Agent-maintained connector between this game and Agent Playtest.
 //
 // Replace the imports below with the *actual* module paths this project uses,
 // then call `connectGame(...)` once, from the game's real initialization code,
-// behind a development-only condition. See .gameprob/AGENTS.md.
+// behind a development-only condition. See .agent-playtest/AGENTS.md.
 //
 // `connect()` must run in the browser and must never ship in production.
 
-import { connect } from "gameprob/bridge";
+import { connect } from "agent-playtest/bridge";
 import type * as THREE from "three";
 
 export function connectGame(refs: {
@@ -25,7 +25,7 @@ export function connectGame(refs: {
     // Optional: give important objects a stable identity so tests can use
     // persistent selectors instead of session-local @gN refs.
     //
-    //   heroRoot.userData.gameprob = { id: "main-hero", role: "character" };
+    //   heroRoot.userData.agentPlaytest = { id: "main-hero", role: "character" };
     //
     // subjects: {
     //   hero: {
@@ -38,7 +38,7 @@ export function connectGame(refs: {
     // },
 
     // Optional: controlled simulation. Only add these when the game can really
-    // pause its normal loop and advance with a fixed timestep; GameProb reports
+    // pause its normal loop and advance with a fixed timestep; Agent Playtest reports
     // them as unavailable otherwise instead of faking a result.
     //
     // simulation: {

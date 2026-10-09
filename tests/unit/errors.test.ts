@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  AgentPlaytestError,
   capabilityError,
   type ErrorCode,
   EXIT_CODES,
-  GameProbError,
-  toGameProbError,
+  toAgentPlaytestError,
 } from "../../src/shared/errors.ts";
 
 const CASES: Array<[ErrorCode, number]> = [
@@ -27,13 +27,13 @@ const CASES: Array<[ErrorCode, number]> = [
 
 describe("error codes and exit classes", () => {
   it.each(CASES)("%s exits with %i", (code, exit) => {
-    const error = new GameProbError({ code, message: "nope" });
+    const error = new AgentPlaytestError({ code, message: "nope" });
     expect(error.exitCode).toBe(exit);
     expect(EXIT_CODES[code]).toBe(exit);
   });
 
   it("keeps missing/hint out of the envelope when absent", () => {
-    const error = new GameProbError({ code: "INTERNAL_ERROR", message: "boom" });
+    const error = new AgentPlaytestError({ code: "INTERNAL_ERROR", message: "boom" });
     expect(error.toEnvelope()).toEqual({ code: "INTERNAL_ERROR", message: "boom" });
   });
 
@@ -49,14 +49,14 @@ describe("error codes and exit classes", () => {
   });
 
   it("wraps unknown failures as INTERNAL_ERROR without losing the message", () => {
-    const wrapped = toGameProbError(new Error("kaput"));
+    const wrapped = toAgentPlaytestError(new Error("kaput"));
     expect(wrapped.code).toBe("INTERNAL_ERROR");
     expect(wrapped.message).toBe("kaput");
-    expect(toGameProbError("just a string").message).toBe("just a string");
+    expect(toAgentPlaytestError("just a string").message).toBe("just a string");
   });
 
-  it("returns GameProbErrors unchanged", () => {
-    const original = new GameProbError({ code: "STALE_REF", message: "stale" });
-    expect(toGameProbError(original)).toBe(original);
+  it("returns AgentPlaytestErrors unchanged", () => {
+    const original = new AgentPlaytestError({ code: "STALE_REF", message: "stale" });
+    expect(toAgentPlaytestError(original)).toBe(original);
   });
 });

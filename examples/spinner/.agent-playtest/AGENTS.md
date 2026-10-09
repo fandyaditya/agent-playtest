@@ -1,15 +1,15 @@
-<!-- gameprob-template-version: 1 -->
-# GameProb — project instructions
+<!-- agent-playtest-template-version: 1 -->
+# Agent Playtest — project instructions
 
-This directory (`.gameprob/`) belongs to **this game project**, not to GameProb
-itself. GameProb ships the tooling; the coding agent maintains the integration,
+This directory (`.agent-playtest/`) belongs to **this game project**, not to Agent Playtest
+itself. Agent Playtest ships the tooling; the coding agent maintains the integration,
 tests, bug records and progress notes here.
 
 ## 1. Read the version-matched guide first
 
 ```bash
-gameprob skills get core          # full workflow for the installed version
-gameprob skills get core --full   # adds the reference and troubleshooting sections
+agent-playtest skills get core          # full workflow for the installed version
+agent-playtest skills get core --full   # adds the reference and troubleshooting sections
 ```
 
 The guide describes the CLI surface of the *installed* version. Trust it over
@@ -23,39 +23,39 @@ not guess; read the source.
 
 ## 3. Connect the bridge (development only)
 
-Edit `.gameprob/bridge.ts` so it imports the *actual* game references, then add
+Edit `.agent-playtest/bridge.ts` so it imports the *actual* game references, then add
 one small development-only call in the game's initialization code:
 
 ```ts
-if (import.meta.env.DEV && new URLSearchParams(location.search).get("gameprob") === "1") {
-  const { connectGame } = await import("../.gameprob/bridge");
+if (import.meta.env.DEV && new URLSearchParams(location.search).get("agent-playtest") === "1") {
+  const { connectGame } = await import("../.agent-playtest/bridge");
   connectGame({ scene, camera, renderer });
 }
 ```
 
 Adapt the relative path, async location, bundler and scope to the real project.
-`?gameprob=1` is **not** a security boundary — the bundler's dev-only condition
+`?agent-playtest=1` is **not** a security boundary — the bundler's dev-only condition
 is what keeps the bridge out of production. Verify the production build does not
 contain it.
 
 ## 4. Use live evidence before writing or updating a bug report
 
 ```bash
-gameprob open http://127.0.0.1:5173/?gameprob=1
-gameprob snapshot
-gameprob inspect @g1 --details
-gameprob capture @g1 --views front,back,left,right
+agent-playtest open http://127.0.0.1:5173/?agent-playtest=1
+agent-playtest snapshot
+agent-playtest inspect @g1 --details
+agent-playtest capture @g1 --views front,back,left,right
 ```
 
 `@gN` refs are session-local. Anything durable must use a persistent selector
-such as `gameprob:id=main-hero`.
+such as `agent-playtest:id=main-hero`.
 
-## 5. Keep reusable tests in `.gameprob/tests/`
+## 5. Keep reusable tests in `.agent-playtest/tests/`
 
-Tests import `{ test, expect }` from `gameprob/test` and run with:
+Tests import `{ test, expect }` from `agent-playtest/test` and run with:
 
 ```bash
-gameprob run
+agent-playtest run
 ```
 
 They must not need an LLM. Do not assert on unsupported capabilities: a check
@@ -74,7 +74,7 @@ Separate, in every bug record:
 Bounding-box overlap is **not** proof of a physics collision, and a screenshot
 difference is **not** automatically an art-direction bug.
 
-## 7. Keep `.gameprob/progress.md` compact
+## 7. Keep `.agent-playtest/progress.md` compact
 
 Tested systems, coverage gaps, current blockers, next actions. Update it as work
 happens, not at the end.
@@ -86,10 +86,10 @@ a check green.
 
 ## 9. Respect the project's editing rules
 
-Changes outside `.gameprob/` follow the user's own permissions and project
+Changes outside `.agent-playtest/` follow the user's own permissions and project
 instructions.
 
 ## 10. No telemetry
 
-GameProb never uploads anything. Do not paste secrets, credentials, cookies or
+Agent Playtest never uploads anything. Do not paste secrets, credentials, cookies or
 player data into bug reports or evidence files.

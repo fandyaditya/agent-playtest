@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Output } from "../../src/cli/output.ts";
-import { GameProbError } from "../../src/shared/errors.ts";
+import { AgentPlaytestError } from "../../src/shared/errors.ts";
 import { PROTOCOL_VERSION, type SnapshotResult } from "../../src/shared/types.ts";
 
 function capture(run: () => void): { stdout: string; stderr: string } {
@@ -46,7 +46,7 @@ describe("JSON envelope", () => {
 
   it("reports failures as an envelope and returns the exit code", () => {
     const output = new Output({ json: true });
-    const error = new GameProbError({
+    const error = new AgentPlaytestError({
       code: "CAPABILITY_UNAVAILABLE",
       message: "no bridge",
       missing: ["scene.snapshot"],
@@ -102,7 +102,7 @@ describe("human output", () => {
 
     expect(stdout).toContain("Bridge: not detected (browser-only mode)");
     expect(stdout).toContain("Game ready: unknown");
-    expect(stdout).toContain("Tip: run gameprob init");
+    expect(stdout).toContain("Tip: run agent-playtest init");
   });
 
   it("renders failures with code, missing and hint on stderr", () => {
@@ -111,16 +111,16 @@ describe("human output", () => {
     const { stdout, stderr } = capture(() => {
       exitCode = output.failure(
         "inspect",
-        new GameProbError({
+        new AgentPlaytestError({
           code: "OBJECT_NOT_FOUND",
-          message: 'No object has gameprob.id "nope".',
+          message: 'No object has agent-playtest.id "nope".',
           hint: "Run snapshot first.",
         }),
       );
     });
 
     expect(stdout).toBe("");
-    expect(stderr).toContain('error [OBJECT_NOT_FOUND]: No object has gameprob.id "nope".');
+    expect(stderr).toContain('error [OBJECT_NOT_FOUND]: No object has agent-playtest.id "nope".');
     expect(stderr).toContain("hint: Run snapshot first.");
     expect(exitCode).toBe(4);
   });
@@ -130,18 +130,18 @@ describe("human output", () => {
     const { stdout } = capture(() => {
       output.success("run", {
         runId: "run-1",
-        runDir: ".gameprob/output/run-1",
+        runDir: ".agent-playtest/output/run-1",
         expected: 3,
         passed: 2,
         failed: 1,
         skipped: 0,
         flaky: 0,
-        resultFile: ".gameprob/output/run-1/result.json",
+        resultFile: ".agent-playtest/output/run-1/result.json",
       });
     });
 
     expect(stdout).toContain("Run run-1: 2/3 passed, 1 failed");
-    expect(stdout).toContain("Evidence: .gameprob/output/run-1");
+    expect(stdout).toContain("Evidence: .agent-playtest/output/run-1");
   });
 
   it("reports a closed session without a phantom session id", () => {
@@ -149,7 +149,9 @@ describe("human output", () => {
     const { stdout } = capture(() => {
       output.success("close", { closed: false, alreadyClosed: true });
     });
-    expect(stdout.trim()).toBe("No active GameProb session for this project (already closed).");
+    expect(stdout.trim()).toBe(
+      "No active Agent Playtest session for this project (already closed).",
+    );
   });
 
   it("prints init notes for a template version mismatch", () => {
@@ -157,19 +159,21 @@ describe("human output", () => {
     const { stdout } = capture(() => {
       output.success("init", {
         projectRoot: "/game",
-        workspace: "/game/.gameprob",
-        created: [".gameprob/AGENTS.md"],
-        preserved: [".gameprob/bridge.ts"],
+        workspace: "/game/.agent-playtest",
+        created: [".agent-playtest/AGENTS.md"],
+        preserved: [".agent-playtest/bridge.ts"],
         engineHint: "three",
         engineEvidence: ['package.json declares "three"'],
-        templateVersionMismatch: [".gameprob/bridge.ts was created from template version 1."],
-        next: ["Next: ask your coding agent to read .gameprob/AGENTS.md."],
+        templateVersionMismatch: [".agent-playtest/bridge.ts was created from template version 1."],
+        next: ["Next: ask your coding agent to read .agent-playtest/AGENTS.md."],
       });
     });
 
-    expect(stdout).toContain("GameProb initialized: /game/.gameprob");
-    expect(stdout).toContain("Preserved (already existed): .gameprob/bridge.ts");
-    expect(stdout).toContain("Note: .gameprob/bridge.ts was created from template version 1.");
+    expect(stdout).toContain("Agent Playtest initialized: /game/.agent-playtest");
+    expect(stdout).toContain("Preserved (already existed): .agent-playtest/bridge.ts");
+    expect(stdout).toContain(
+      "Note: .agent-playtest/bridge.ts was created from template version 1.",
+    );
   });
 });
 
@@ -200,7 +204,7 @@ function snapshotData(): SnapshotResult {
         name: "Hero",
         kind: "mesh",
         engineType: "Mesh",
-        selector: "gameprob:id=main-hero",
+        selector: "agent-playtest:id=main-hero",
         visible: false,
       },
     ],

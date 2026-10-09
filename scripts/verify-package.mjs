@@ -52,7 +52,7 @@ const required = [
   "templates/project/gitignore",
   "skill-data/core.md",
   "skill-data/reference.md",
-  "skills/gameprob/SKILL.md",
+  "skills/agent-playtest/SKILL.md",
 ];
 for (const path of required) {
   if (!has(path)) fail(`tarball is missing ${path}`);
@@ -75,7 +75,9 @@ const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const cli = readFileSync(join(root, "dist", "cli.js"), "utf8");
 if (!cli.startsWith("#!/usr/bin/env node")) fail("dist/cli.js lost its shebang");
 if (!(statSync(join(root, "dist", "cli.js")).mode & 0o111)) fail("dist/cli.js is not executable");
-if (pkg.bin?.gameprob !== "./dist/cli.js") fail("package.json bin does not point at dist/cli.js");
+if (pkg.name !== "agent-playtest") fail("package.json name is not agent-playtest");
+if (pkg.bin?.["agent-playtest"] !== "./dist/cli.js")
+  fail("package.json bin does not point at dist/cli.js");
 if (pkg.type !== "module") fail("package.json is not an ESM package");
 
 for (const [subpath, entry] of Object.entries(pkg.exports ?? {})) {
@@ -100,8 +102,8 @@ for (const asset of ["templates", "skill-data"]) {
 
 // 4. Templates must be self-describing, versioned and unsubstituted.
 const marker = readFileSync(join(root, "templates", "project", "AGENTS.md"), "utf8");
-if (!/gameprob-template-version:\s*\d+/.test(marker)) {
-  fail("templates/project/AGENTS.md has no gameprob-template-version marker");
+if (!/agent-playtest-template-version:\s*\d+/.test(marker)) {
+  fail("templates/project/AGENTS.md has no agent-playtest-template-version marker");
 }
 const configTemplate = readFileSync(join(root, "templates", "project", "config.json"), "utf8");
 for (const placeholder of ["{{PROJECT_NAME}}", "{{ENGINE_HINT}}", "{{GAME_URL}}"]) {
@@ -109,8 +111,8 @@ for (const placeholder of ["{{PROJECT_NAME}}", "{{ENGINE_HINT}}", "{{GAME_URL}}"
 }
 for (const template of ["progress.md", "bridge.three.ts", "bridge.phaser.ts"]) {
   const body = readFileSync(join(root, "templates", "project", template), "utf8");
-  if (!/gameprob-template-version:\s*\d+/.test(body)) {
-    fail(`templates/project/${template} has no gameprob-template-version marker`);
+  if (!/agent-playtest-template-version:\s*\d+/.test(body)) {
+    fail(`templates/project/${template} has no agent-playtest-template-version marker`);
   }
 }
 

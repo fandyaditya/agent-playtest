@@ -1,12 +1,12 @@
-// A small but real Three.js game, used to exercise GameProb end to end.
+// A small but real Three.js game, used to exercise Agent Playtest end to end.
 //
 // It is deliberately plain JavaScript served without a bundler, so the
-// development-only bridge call lives here instead of in `.gameprob/bridge.ts`.
-// `?gameprob=1` is NOT a security boundary: a real project must gate the bridge
+// development-only bridge call lives here instead of in `.agent-playtest/bridge.ts`.
+// `?agent-playtest=1` is NOT a security boundary: a real project must gate the bridge
 // behind a bundler's dev-only condition and verify it is absent from the
 // production build.
 
-import { connect } from "gameprob/bridge";
+import { connect } from "agent-playtest/bridge";
 import * as THREE from "three";
 
 const WALL_INNER_X = 1.92;
@@ -46,7 +46,7 @@ const hero = new THREE.Mesh(
 );
 hero.position.set(0, 0.4, 0);
 hero.name = "Hero";
-hero.userData.gameprob = { id: "main-hero", role: "character" };
+hero.userData.agentPlaytest = { id: "main-hero", role: "character" };
 scene.add(hero);
 
 const wall = new THREE.Mesh(
@@ -55,7 +55,7 @@ const wall = new THREE.Mesh(
 );
 wall.position.set(WALL_INNER_X + 0.2, 0.8, 0);
 wall.name = "Wall";
-wall.userData.gameprob = { id: "wall" };
+wall.userData.agentPlaytest = { id: "wall" };
 scene.add(wall);
 
 const obstacle = new THREE.Mesh(
@@ -64,7 +64,7 @@ const obstacle = new THREE.Mesh(
 );
 obstacle.position.set(-2.4, 0.3, 0.6);
 obstacle.name = "Obstacle";
-obstacle.userData.gameprob = { id: "obstacle" };
+obstacle.userData.agentPlaytest = { id: "obstacle" };
 scene.add(obstacle);
 
 const held = new Set();
@@ -111,7 +111,7 @@ window.addEventListener("keydown", (event) => held.add(event.key));
 window.addEventListener("keyup", (event) => held.delete(event.key));
 
 const shouldConnect =
-  new URLSearchParams(location.search).get("gameprob") === "1" &&
+  new URLSearchParams(location.search).get("agent-playtest") === "1" &&
   ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
 
 if (shouldConnect) {

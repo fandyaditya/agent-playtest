@@ -131,6 +131,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error(`gameprob daemon failed to start: ${String(error)}`);
+  console.error(`agent-playtest daemon failed to start: ${String(error)}`);
   process.exit(1);
 });

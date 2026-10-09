@@ -1,5 +1,5 @@
 /**
- * `gameprob init` — idempotent, non-destructive project workspace creation.
+ * `agent-playtest init` — idempotent, non-destructive project workspace creation.
  *
  * It never edits game source, never runs package scripts, and never overwrites
  * an existing user-authored file. Template changes are reported, not applied.
@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { inferProjectName } from "../../shared/config.ts";
-import { GameProbError } from "../../shared/errors.ts";
+import { AgentPlaytestError } from "../../shared/errors.ts";
 import {
   atomicWriteFile,
   packageRoot,
@@ -36,10 +36,10 @@ export interface InitResult {
 }
 
 const TEMPLATE_VERSION = 1;
-const DEFAULT_GAME_URL = "http://127.0.0.1:5173/?gameprob=1";
+const DEFAULT_GAME_URL = "http://127.0.0.1:5173/?agent-playtest=1";
 const ROOT_AGENTS_SNIPPET = [
   "## Game testing",
-  "When inspecting or testing this browser game, read `.gameprob/AGENTS.md` and use the installed `gameprob` CLI. Game-specific tests, bugs, and progress live under `.gameprob/`.",
+  "When inspecting or testing this browser game, read `.agent-playtest/AGENTS.md` and use the installed `agent-playtest` CLI. Game-specific tests, bugs, and progress live under `.agent-playtest/`.",
 ].join("\n");
 
 export function runInit(options: InitOptions = {}): InitResult {
@@ -60,9 +60,9 @@ export function runInit(options: InitOptions = {}): InitResult {
     template: string;
     transform?: (input: string) => string;
   }> = [
-    { relative: ".gameprob/AGENTS.md", template: "AGENTS.md" },
+    { relative: ".agent-playtest/AGENTS.md", template: "AGENTS.md" },
     {
-      relative: ".gameprob/config.json",
+      relative: ".agent-playtest/config.json",
       template: "config.json",
       transform: (input) =>
         input
@@ -70,9 +70,9 @@ export function runInit(options: InitOptions = {}): InitResult {
           .replace("{{ENGINE_HINT}}", detection.hint)
           .replace("{{GAME_URL}}", DEFAULT_GAME_URL),
     },
-    { relative: ".gameprob/bridge.ts", template: bridgeTemplate },
-    { relative: ".gameprob/progress.md", template: "progress.md" },
-    { relative: ".gameprob/.gitignore", template: "gitignore" },
+    { relative: ".agent-playtest/bridge.ts", template: bridgeTemplate },
+    { relative: ".agent-playtest/progress.md", template: "progress.md" },
+    { relative: ".agent-playtest/.gitignore", template: "gitignore" },
   ];
 
   for (const file of files) {
@@ -91,7 +91,7 @@ export function runInit(options: InitOptions = {}): InitResult {
           existingVersion !== templateVersion
         ) {
           templateVersionMismatch.push(
-            `${file.relative} was created from template version ${existingVersion}; this CLI ships version ${templateVersion}. Review the new template and update it manually — GameProb never overwrites your file.`,
+            `${file.relative} was created from template version ${existingVersion}; this CLI ships version ${templateVersion}. Review the new template and update it manually — Agent Playtest never overwrites your file.`,
           );
         }
       }
@@ -101,7 +101,7 @@ export function runInit(options: InitOptions = {}): InitResult {
     created.push(file.relative);
   }
 
-  for (const directory of [".gameprob/tests", ".gameprob/bugs"]) {
+  for (const directory of [".agent-playtest/tests", ".agent-playtest/bugs"]) {
     const destination = resolveInside(projectRoot, directory, "init directory");
     const keep = join(destination, ".gitkeep");
     if (!existsSync(keep)) {
@@ -116,16 +116,16 @@ export function runInit(options: InitOptions = {}): InitResult {
   }
 
   const next = [
-    "Next: ask your coding agent to read .gameprob/AGENTS.md and connect the running scene.",
+    "Next: ask your coding agent to read .agent-playtest/AGENTS.md and connect the running scene.",
   ];
   if (detection.hint === "unknown") {
     next.push(
-      "No engine was detected from project evidence. Open .gameprob/bridge.ts and connect the real references manually.",
+      "No engine was detected from project evidence. Open .agent-playtest/bridge.ts and connect the real references manually.",
     );
   }
-  next.push("Then: gameprob open http://127.0.0.1:5173/?gameprob=1");
+  next.push("Then: agent-playtest open http://127.0.0.1:5173/?agent-playtest=1");
   if (options.linkAgents && !agentsLinked) {
-    next.push("Root AGENTS.md already referenced .gameprob/AGENTS.md; no change was made.");
+    next.push("Root AGENTS.md already referenced .agent-playtest/AGENTS.md; no change was made.");
   }
 
   return {
@@ -144,7 +144,7 @@ export function runInit(options: InitOptions = {}): InitResult {
 function linkRootAgents(projectRoot: string): boolean {
   const target = join(projectRoot, "AGENTS.md");
   const existing = existsSync(target) ? readFileSync(target, "utf8") : "";
-  if (existing.includes(".gameprob/AGENTS.md")) return false;
+  if (existing.includes(".agent-playtest/AGENTS.md")) return false;
   const separator = existing.length === 0 ? "" : existing.endsWith("\n") ? "\n" : "\n\n";
   atomicWriteFile(target, `${existing}${separator}${ROOT_AGENTS_SNIPPET}\n`);
   return true;
@@ -152,10 +152,10 @@ function linkRootAgents(projectRoot: string): boolean {
 
 function readTemplate(path: string): string {
   if (!existsSync(path)) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INTERNAL_ERROR",
       message: `Bundled template is missing: ${path}`,
-      hint: "The npm package was packed without its templates. Reinstall gameprob.",
+      hint: "The npm package was packed without its templates. Reinstall agent-playtest.",
     });
   }
   return readFileSync(path, "utf8");
@@ -170,7 +170,7 @@ function safeRead(path: string): string | undefined {
 }
 
 function readTemplateVersion(contents: string): number | undefined {
-  const match = /gameprob-template-version:\s*(\d+)/.exec(contents);
+  const match = /agent-playtest-template-version:\s*(\d+)/.exec(contents);
   return match ? Number(match[1]) : undefined;
 }
 
@@ -183,13 +183,13 @@ function assertWritable(projectRoot: string): void {
   try {
     stats = statSync(projectRoot);
   } catch (error) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Cannot read project directory ${projectRoot}: ${error instanceof Error ? error.message : String(error)}`,
     });
   }
   if (!stats.isDirectory()) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Project path is not a directory: ${projectRoot}`,
     });

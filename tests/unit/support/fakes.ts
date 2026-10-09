@@ -146,7 +146,7 @@ export class FakeAdapter implements EngineAdapter<FakeNode> {
       position: [...object.position],
       childCount: object.children.length,
     };
-    if (object.id) summary.selector = `gameprob:id=${object.id}`;
+    if (object.id) summary.selector = `agent-playtest:id=${object.id}`;
     if (parentRef) summary.parentRef = parentRef;
     if (object.visible !== undefined) summary.visible = object.visible;
     if (object.animation) summary.animation = object.animation;
@@ -226,7 +226,7 @@ export interface ThreeNodeSpec {
   position?: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];
-  gameprob?: { id?: string; animation?: string };
+  agentPlaytest?: { id?: string; animation?: string };
   geometry?: {
     type?: string;
     boundingBox?: { min: [number, number, number]; max: [number, number, number] };
@@ -267,7 +267,7 @@ export function threeNode(spec: ThreeNodeSpec): ThreeFakeLike {
     children: [],
     parent: null,
     layers: { mask: 1 },
-    userData: spec.gameprob ? { gameprob: spec.gameprob } : {},
+    userData: spec.agentPlaytest ? { agentPlaytest: spec.agentPlaytest } : {},
     updateWorldMatrix(): void {},
     matrixWorld: { elements: identityWithTranslation(position) },
   } as unknown as ThreeFakeLike;

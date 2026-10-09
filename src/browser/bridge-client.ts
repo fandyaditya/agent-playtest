@@ -6,7 +6,7 @@
  */
 
 import type { Page } from "playwright";
-import { type ErrorCode, GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError, type ErrorCode } from "../shared/errors.ts";
 import { BRIDGE_GLOBAL, type EngineName } from "../shared/types.ts";
 
 const ERROR_CODES = new Set<string>([
@@ -98,8 +98,8 @@ export async function invokeBridge<T>(page: Page, method: string, args: unknown[
           ok: false as const,
           error: {
             code: "BRIDGE_NOT_CONNECTED",
-            message: "No GameProb bridge is registered on this page.",
-            hint: "Run `gameprob init`, connect .gameprob/bridge.ts in development, then reload with ?gameprob=1.",
+            message: "No Agent Playtest bridge is registered on this page.",
+            hint: "Run `agent-playtest init`, connect .agent-playtest/bridge.ts in development, then reload with ?agent-playtest=1.",
           },
         };
       }
@@ -138,7 +138,7 @@ export async function invokeBridge<T>(page: Page, method: string, args: unknown[
   if (outcome.ok) return outcome.value as T;
   const failure = outcome.error as InPageFailure;
   const code = (ERROR_CODES.has(failure.code) ? failure.code : "INTERNAL_ERROR") as ErrorCode;
-  throw new GameProbError({
+  throw new AgentPlaytestError({
     code,
     message: failure.message,
     ...(failure.missing ? { missing: failure.missing } : {}),

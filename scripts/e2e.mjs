@@ -5,7 +5,7 @@
  *
  * This is the maintainer's "does the whole thing work" script. It needs a
  * Chromium that can render WebGL; on Alpine that means `chromium` plus
- * `chromium-swiftshader`, pointed at with GAMEPROB_CHROMIUM_PATH.
+ * `chromium-swiftshader`, pointed at with AGENT_PLAYTEST_CHROMIUM_PATH.
  */
 
 import { spawn } from "node:child_process";
@@ -17,8 +17,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const example = join(root, "examples", "spinner");
 const cli = join(root, "dist", "cli.js");
 const home = join(root, ".tmp-e2e-home");
-const port = Number(process.env.GAMEPROB_EXAMPLE_PORT ?? 5199);
-const url = `http://127.0.0.1:${port}/?gameprob=1`;
+const port = Number(process.env.AGENT_PLAYTEST_EXAMPLE_PORT ?? 5199);
+const url = `http://127.0.0.1:${port}/?agent-playtest=1`;
 
 const steps = [];
 let failures = 0;
@@ -33,7 +33,7 @@ function bad(name, detail) {
 }
 
 function chromium() {
-  if (process.env.GAMEPROB_CHROMIUM_PATH) return process.env.GAMEPROB_CHROMIUM_PATH;
+  if (process.env.AGENT_PLAYTEST_CHROMIUM_PATH) return process.env.AGENT_PLAYTEST_CHROMIUM_PATH;
   for (const candidate of [
     "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
@@ -45,9 +45,9 @@ function chromium() {
 }
 
 function env() {
-  const value = { ...process.env, GAMEPROB_HOME: home };
+  const value = { ...process.env, AGENT_PLAYTEST_HOME: home };
   const browser = chromium();
-  if (browser) value.GAMEPROB_CHROMIUM_PATH = browser;
+  if (browser) value.AGENT_PLAYTEST_CHROMIUM_PATH = browser;
   return value;
 }
 
@@ -82,7 +82,7 @@ async function reuseIfRunning() {
     const response = await fetch(`http://127.0.0.1:${port}/`);
     if (!response.ok) return false;
     const body = await response.text();
-    return body.includes('id="game"') || body.includes("gameprob");
+    return body.includes('id="game"') || body.includes("agent-playtest");
   } catch {
     return false;
   }
@@ -133,7 +133,7 @@ async function main() {
     process.exit(1);
   }
   if (!chromium()) {
-    console.error("No Chromium found. Set GAMEPROB_CHROMIUM_PATH (see docs/DECISIONS.md).");
+    console.error("No Chromium found. Set AGENT_PLAYTEST_CHROMIUM_PATH (see docs/DECISIONS.md).");
     process.exit(1);
   }
 
@@ -157,12 +157,12 @@ async function main() {
       bad("snapshot", snapshot.stderr.trim() || snapshot.json?.error?.message || snapshot.stdout);
     else {
       const objects = snapshot.json.data.objects ?? [];
-      const hero = objects.find((object) => object.selector === "gameprob:id=main-hero");
+      const hero = objects.find((object) => object.selector === "agent-playtest:id=main-hero");
       if (!hero) bad("snapshot", "main-hero was not discoverable");
       else step("snapshot", `${objects.length} objects, hero ${hero.ref}`);
     }
 
-    const before = await runCli(["inspect", "gameprob:id=main-hero", "--json"], 120_000);
+    const before = await runCli(["inspect", "agent-playtest:id=main-hero", "--json"], 120_000);
     if (before.code !== 0)
       bad("inspect", before.stderr.trim() || before.json?.error?.message || before.stdout);
     else step("inspect", `x=${before.json.data.worldPosition?.[0]}`);
@@ -171,7 +171,7 @@ async function main() {
     await runCli(["act", "step", "240", "--json"]);
     await runCli(["act", "keyup", "ArrowRight", "--json"]);
 
-    const after = await runCli(["inspect", "gameprob:id=main-hero", "--json"], 120_000);
+    const after = await runCli(["inspect", "agent-playtest:id=main-hero", "--json"], 120_000);
     const x = after.json?.data?.worldPosition?.[0];
     if (after.code !== 0)
       bad("act", after.stderr.trim() || after.json?.error?.message || after.stdout);
@@ -180,7 +180,14 @@ async function main() {
     else step("act", `hero clamped at x=${x}`);
 
     const page = await runCli(
-      ["capture", "--page", "--out", ".gameprob/output/e2e-page.png", "--overwrite", "--json"],
+      [
+        "capture",
+        "--page",
+        "--out",
+        ".agent-playtest/output/e2e-page.png",
+        "--overwrite",
+        "--json",
+      ],
       180_000,
     );
     if (page.code !== 0 || page.json.data?.views?.[0]?.nonBlank !== true) {
@@ -196,11 +203,11 @@ async function main() {
     const object = await runCli(
       [
         "capture",
-        "gameprob:id=main-hero",
+        "agent-playtest:id=main-hero",
         "--views",
         "front,right",
         "--out",
-        ".gameprob/output/e2e-hero",
+        ".agent-playtest/output/e2e-hero",
         "--overwrite",
         "--json",
       ],
@@ -242,7 +249,7 @@ async function main() {
     server.kill("SIGTERM");
   }
 
-  console.log("gameprob end-to-end");
+  console.log("agent-playtest end-to-end");
   for (const line of steps) console.log(line);
   console.log(failures === 0 ? "\nE2E OK" : `\nE2E FAILED (${failures} step(s))`);
   process.exit(failures === 0 ? 0 : 1);

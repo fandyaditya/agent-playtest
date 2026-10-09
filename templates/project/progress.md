@@ -1,5 +1,5 @@
-<!-- gameprob-template-version: 1 -->
-# GameProb QA Progress
+<!-- agent-playtest-template-version: 1 -->
+# Agent Playtest QA Progress
 
 Keep this short and factual. Separate what was observed from what is assumed.
 
@@ -16,15 +16,15 @@ Keep this short and factual. Separate what was observed from what is assumed.
 
 ## Open issues
 
-None yet. Bug records live in `.gameprob/bugs/` as `GP-0001.md` and use the
+None yet. Bug records live in `.agent-playtest/bugs/` as `GP-0001.md` and use the
 observation / evidence / reproduction / hypotheses / verification structure.
 
 ## Current blockers
 
-- Bridge not connected yet: run `gameprob init`, then connect `.gameprob/bridge.ts`.
+- Bridge not connected yet: run `agent-playtest init`, then connect `.agent-playtest/bridge.ts`.
 
 ## Next actions
 
-1. Read `gameprob skills get core` for the installed CLI version.
+1. Read `agent-playtest skills get core` for the installed CLI version.
 2. Find the real scene/camera/renderer references and connect the bridge.
-3. Run `gameprob open`, `snapshot`, `inspect @g1` and record what was observed.
+3. Run `agent-playtest open`, `snapshot`, `inspect @g1` and record what was observed.

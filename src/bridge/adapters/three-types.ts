@@ -120,14 +120,15 @@ export interface CameraLike extends Object3DLike {
   updateMatrixWorld?: (force?: boolean) => void;
 }
 
-export function readGameProbMeta(object: Object3DLike): {
+export function readAgentPlaytestMeta(object: Object3DLike): {
   id?: string;
   role?: string;
   animation?: string;
 } {
   const userData = object.userData;
   if (!userData || typeof userData !== "object") return {};
-  const raw = (userData as Record<string, unknown>).gameprob;
+  // Game code opts in by marking objects: `node.userData.agentPlaytest = { id, role }`.
+  const raw = (userData as Record<string, unknown>).agentPlaytest;
   if (!raw || typeof raw !== "object") return {};
   const meta = raw as Record<string, unknown>;
   const result: { id?: string; role?: string; animation?: string } = {};

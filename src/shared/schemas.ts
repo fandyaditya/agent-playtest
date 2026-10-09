@@ -11,7 +11,7 @@ import { CONFIG_SCHEMA_VERSION, PROTOCOL_VERSION } from "./types.ts";
 export const engineHintSchema = z.enum(["three", "phaser", "pixi", "unknown"]);
 
 /**
- * Shape of `.gameprob/config.json`. All fields are optional on disk; defaults
+ * Shape of `.agent-playtest/config.json`. All fields are optional on disk; defaults
  * and precedence live in `resolveConfig` so behavior is explicit and testable.
  */
 export const projectConfigSchema = z.strictObject({
@@ -38,7 +38,7 @@ export const projectConfigSchema = z.strictObject({
         })
         .optional(),
       deviceScaleFactor: z.number().min(0.5).max(4).optional(),
-      /** Explicit Chromium binary; env GAMEPROB_CHROMIUM_PATH wins over it. */
+      /** Explicit Chromium binary; env AGENT_PLAYTEST_CHROMIUM_PATH wins over it. */
       executablePath: z.string().min(1).max(1000).optional(),
     })
     .optional(),
@@ -87,7 +87,7 @@ export const DEFAULT_CONFIG: ResolvedConfig = {
     deviceScaleFactor: 1,
   },
   session: { idleTimeoutMs: 30 * 60 * 1000 },
-  output: { directory: ".gameprob/output" },
+  output: { directory: ".agent-playtest/output" },
 };
 
 export interface ResolveConfigInput {
@@ -209,13 +209,13 @@ export function parseConfigFile(
     const issues = parsed.error.issues
       .map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`)
       .join("; ");
-    return { ok: false, message: `${source} is not a valid GameProb config: ${issues}` };
+    return { ok: false, message: `${source} is not a valid Agent Playtest config: ${issues}` };
   }
   const version = parsed.data.schemaVersion ?? CONFIG_SCHEMA_VERSION;
   if (version !== CONFIG_SCHEMA_VERSION) {
     return {
       ok: false,
-      message: `${source} uses config schemaVersion ${version}, but this GameProb build supports ${CONFIG_SCHEMA_VERSION}. No automatic migration is performed; update the file or re-run "gameprob init".`,
+      message: `${source} uses config schemaVersion ${version}, but this Agent Playtest build supports ${CONFIG_SCHEMA_VERSION}. No automatic migration is performed; update the file or re-run "agent-playtest init".`,
     };
   }
   return { ok: true, value: parsed.data };

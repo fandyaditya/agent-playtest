@@ -1,5 +1,5 @@
 /**
- * `gameprob snapshot [--depth N] [--delta]`
+ * `agent-playtest snapshot [--depth N] [--delta]`
  */
 
 import type { SnapshotResult } from "../../shared/types.ts";

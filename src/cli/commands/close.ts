@@ -1,5 +1,5 @@
 /**
- * `gameprob close`
+ * `agent-playtest close`
  *
  * Never starts a daemon: if there is no session, it reports that honestly.
  */

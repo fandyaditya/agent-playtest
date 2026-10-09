@@ -8,7 +8,7 @@ import { packageRoot } from "../../src/shared/paths.ts";
 
 const CORE = readFileSync(join(packageRoot(), "skill-data", "core.md"), "utf8");
 const REFERENCE = readFileSync(join(packageRoot(), "skill-data", "reference.md"), "utf8");
-const SKILL = readFileSync(join(packageRoot(), "skills", "gameprob", "SKILL.md"), "utf8");
+const SKILL = readFileSync(join(packageRoot(), "skills", "agent-playtest", "SKILL.md"), "utf8");
 
 function fencedBlock(markdown: string, heading: string): string {
   const after = markdown.slice(markdown.indexOf(heading));
@@ -30,13 +30,13 @@ function collectOptions(command: Command): Set<string> {
   return flags;
 }
 
-/** Every documented `gameprob <cmd> …` line, with the flags it advertises. */
+/** Every documented `agent-playtest <cmd> …` line, with the flags it advertises. */
 function documentedCommands(): Array<{ name: string; line: string; flags: string[] }> {
   const block = fencedBlock(CORE, "## Commands");
   return block
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line.startsWith("gameprob "))
+    .filter((line) => line.startsWith("agent-playtest "))
     .map((line) => {
       const tokens = line.split(/\s+/);
       const name = tokens[1] ?? "";
@@ -143,13 +143,13 @@ describe("the bundled guides stay honest", () => {
   });
 
   it("keeps the selector preference order in the guide and in the reference", () => {
-    for (const selector of ["gameprob:id=", "name:", "type:", "@g1"]) {
+    for (const selector of ["agent-playtest:id=", "name:", "type:", "@g1"]) {
       expect(CORE).toContain(selector);
     }
     expect(REFERENCE.length).toBeGreaterThan(500);
   });
 
   it("points the skill file at the CLI itself instead of duplicating it", () => {
-    expect(SKILL).toContain("gameprob skills get core");
+    expect(SKILL).toContain("agent-playtest skills get core");
   });
 });

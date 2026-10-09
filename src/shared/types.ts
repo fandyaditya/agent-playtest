@@ -11,7 +11,7 @@ export const CONFIG_SCHEMA_VERSION = 1;
 export const BRIDGE_VERSION = 1;
 
 /** Private-ish page global used to register the development-only bridge. */
-export const BRIDGE_GLOBAL = "__GAMEPROB_BRIDGE__";
+export const BRIDGE_GLOBAL = "__AGENT_PLAYTEST_BRIDGE__";
 
 export type EngineName = "three" | "phaser" | "custom";
 
@@ -31,7 +31,7 @@ export type Vec2Or3 = [number, number] | [number, number, number];
 
 export interface GameObjectSummary {
   ref: string;
-  /** Recommended persistent selector, e.g. `gameprob:id=main-hero`. */
+  /** Recommended persistent selector, e.g. `agent-playtest:id=main-hero`. */
   selector?: string;
   name: string;
   kind: GameObjectKind;

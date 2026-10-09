@@ -31,7 +31,7 @@ function arena() {
     isScene: true,
     children: [
       threeNode({ name: "Sun", type: "DirectionalLight", isLight: true, position: [3, 6, 4] }),
-      cube("Hero", [1, 0.4, 0], { gameprob: { id: "main-hero" } }),
+      cube("Hero", [1, 0.4, 0], { agentPlaytest: { id: "main-hero" } }),
       threeNode({
         name: "Props",
         type: "Group",
@@ -111,7 +111,7 @@ describe("ThreeAdapter object identity", () => {
     const { adapter } = adapterFor();
     const hero = adapter.all()[2]!;
     expect(adapter.persistentIdOf(hero)).toBe("main-hero");
-    expect(adapter.summary(hero, "@g3", "@g1").selector).toBe("gameprob:id=main-hero");
+    expect(adapter.summary(hero, "@g3", "@g1").selector).toBe("agent-playtest:id=main-hero");
     expect(adapter.summary(hero, "@g3", "@g1").parentRef).toBe("@g1");
   });
 
@@ -281,7 +281,7 @@ describe("ThreeAdapter object capture planning", () => {
   });
 
   it("uses the subject's own forward axis when the project registers one", () => {
-    const hero = cube("Hero", [0, 0, 0], { gameprob: { id: "main-hero" } });
+    const hero = cube("Hero", [0, 0, 0], { agentPlaytest: { id: "main-hero" } });
     const scene = threeNode({ name: "arena", isScene: true, children: [hero] });
     const { adapter } = adapterFor(scene, {
       hero: { object: hero, id: "main-hero", forward: [1, 0, 0] },

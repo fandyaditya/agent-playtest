@@ -40,7 +40,7 @@ export const EXIT_CODES: Record<ErrorCode, number> = {
   INTERNAL_ERROR: 1,
 };
 
-export interface GameProbErrorOptions {
+export interface AgentPlaytestErrorOptions {
   code: ErrorCode;
   message: string;
   /** Capability keys or hook names that would make the operation possible. */
@@ -49,14 +49,14 @@ export interface GameProbErrorOptions {
   cause?: unknown;
 }
 
-export class GameProbError extends Error {
+export class AgentPlaytestError extends Error {
   readonly code: ErrorCode;
   readonly missing?: string[];
   readonly hint?: string;
 
-  constructor(options: GameProbErrorOptions) {
+  constructor(options: AgentPlaytestErrorOptions) {
     super(options.message, options.cause === undefined ? undefined : { cause: options.cause });
-    this.name = "GameProbError";
+    this.name = "AgentPlaytestError";
     this.code = options.code;
     if (options.missing) this.missing = options.missing;
     if (options.hint) this.hint = options.hint;
@@ -76,12 +76,16 @@ export class GameProbError extends Error {
   }
 }
 
-export function toGameProbError(error: unknown): GameProbError {
-  if (error instanceof GameProbError) return error;
+export function toAgentPlaytestError(error: unknown): AgentPlaytestError {
+  if (error instanceof AgentPlaytestError) return error;
   const message = error instanceof Error ? error.message : String(error);
-  return new GameProbError({ code: "INTERNAL_ERROR", message, cause: error });
+  return new AgentPlaytestError({ code: "INTERNAL_ERROR", message, cause: error });
 }
 
-export function capabilityError(message: string, missing: string[], hint?: string): GameProbError {
-  return new GameProbError({ code: "CAPABILITY_UNAVAILABLE", message, missing, hint });
+export function capabilityError(
+  message: string,
+  missing: string[],
+  hint?: string,
+): AgentPlaytestError {
+  return new AgentPlaytestError({ code: "CAPABILITY_UNAVAILABLE", message, missing, hint });
 }

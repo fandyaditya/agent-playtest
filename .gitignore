@@ -4,9 +4,9 @@ coverage/
 *.log
 .DS_Store
 
-# GameProb consumer output (never commit generated evidence)
-.gameprob/output/
-examples/*/.gameprob/output/
+# Agent Playtest consumer output (never commit generated evidence)
+.agent-playtest/output/
+examples/*/.agent-playtest/output/
 tests/.tmp/
 
 # Isolated machine homes used by the integration/e2e harnesses

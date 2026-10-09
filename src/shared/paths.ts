@@ -1,6 +1,6 @@
 /**
- * Filesystem contracts: project workspace (`<project>/.gameprob/`) and machine
- * home (`~/.gameprob/`). All generated writes go through the safe helpers here
+ * Filesystem contracts: project workspace (`<project>/.agent-playtest/`) and machine
+ * home (`~/.agent-playtest/`). All generated writes go through the safe helpers here
  * so path traversal and symlink escapes are rejected in one place.
  */
 
@@ -19,9 +19,9 @@ import {
 import { homedir, tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { GameProbError } from "./errors.ts";
+import { AgentPlaytestError } from "./errors.ts";
 
-export const PROJECT_DIR_NAME = ".gameprob";
+export const PROJECT_DIR_NAME = ".agent-playtest";
 
 /** Walk up from this module until the owning package.json is found. */
 export function packageRoot(): string {
@@ -30,9 +30,9 @@ export function packageRoot(): string {
     if (existsSync(join(dir, "package.json"))) return dir;
     const parent = dirname(dir);
     if (parent === dir) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INTERNAL_ERROR",
-        message: "Could not locate the GameProb package root.",
+        message: "Could not locate the Agent Playtest package root.",
       });
     }
     dir = parent;
@@ -46,9 +46,9 @@ export function packageVersion(): string {
 }
 
 export function machineHome(): string {
-  const override = process.env.GAMEPROB_HOME;
+  const override = process.env.AGENT_PLAYTEST_HOME;
   if (override && override.trim().length > 0) return resolve(override);
-  return join(homedir(), ".gameprob");
+  return join(homedir(), ".agent-playtest");
 }
 
 export function ensureMachineDirs(): { home: string; sessions: string; logs: string } {
@@ -103,10 +103,10 @@ export function sessionEndpoint(canonicalRoot: string): SessionEndpoint {
 }
 
 function socketPathFor(sessionsDir: string, key: string): string {
-  if (process.platform === "win32") return `\\\\.\\pipe\\gameprob-${key}`;
+  if (process.platform === "win32") return `\\\\.\\pipe\\agent-playtest-${key}`;
   const preferred = join(sessionsDir, `${key}.sock`);
   if (Buffer.byteLength(preferred) <= MAX_UNIX_SOCKET_PATH_BYTES) return preferred;
-  return join(tmpdir(), `gameprob-${key}.sock`);
+  return join(tmpdir(), `agent-playtest-${key}.sock`);
 }
 
 export interface SessionMeta {
@@ -169,14 +169,14 @@ export function canonicalize(dir: string): string {
 export function resolveProjectRoot(explicit?: string): string {
   const candidate = explicit ? resolve(explicit) : process.cwd();
   if (!existsSync(candidate)) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Project directory does not exist: ${candidate}`,
     });
   }
   const stats = statSync(candidate);
   if (!stats.isDirectory()) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Project path is not a directory: ${candidate}`,
     });
@@ -224,7 +224,7 @@ export function resolveInside(root: string, candidate: string, label = "path"): 
   const absolute = resolve(root, candidate);
   const realRoot = canonicalize(root);
   if (!isInside(realRoot, absolute)) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INVALID_ARGUMENT",
       message: `Refusing to write outside the project: ${label} resolves to ${absolute}`,
     });
@@ -235,7 +235,7 @@ export function resolveInside(root: string, candidate: string, label = "path"): 
   if (existsSync(probe)) {
     const realProbe = canonicalize(probe);
     if (!isInside(realRoot, realProbe)) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INVALID_ARGUMENT",
         message: `Refusing to follow a symlink out of the project: ${label} (${probe} -> ${realProbe})`,
       });

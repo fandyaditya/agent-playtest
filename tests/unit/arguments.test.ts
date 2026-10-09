@@ -5,35 +5,35 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { runAct } from "../../src/cli/commands/act.ts";
 import { runCapture } from "../../src/cli/commands/capture.ts";
 import { runInit } from "../../src/cli/commands/init.ts";
-import { GameProbError } from "../../src/shared/errors.ts";
+import { AgentPlaytestError } from "../../src/shared/errors.ts";
 
 let root = "";
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "gameprob-args-"));
-  process.env.GAMEPROB_HOME = join(root, "home");
+  root = mkdtempSync(join(tmpdir(), "agent-playtest-args-"));
+  process.env.AGENT_PLAYTEST_HOME = join(root, "home");
   writeFileSync(join(root, "package.json"), JSON.stringify({ name: "spinner" }));
   runInit({ project: root });
 });
 
 afterEach(() => {
   rmSync(root, { recursive: true, force: true });
-  delete process.env.GAMEPROB_HOME;
+  delete process.env.AGENT_PLAYTEST_HOME;
 });
 
-async function expectInvalid(run: () => Promise<unknown>): Promise<GameProbError> {
+async function expectInvalid(run: () => Promise<unknown>): Promise<AgentPlaytestError> {
   const error = await expectFailure(run);
   expect(error.code).toBe("INVALID_ARGUMENT");
   expect(error.exitCode).toBe(2);
   return error;
 }
 
-async function expectFailure(run: () => Promise<unknown>): Promise<GameProbError> {
+async function expectFailure(run: () => Promise<unknown>): Promise<AgentPlaytestError> {
   try {
     await run();
   } catch (error) {
-    expect(error).toBeInstanceOf(GameProbError);
-    return error as GameProbError;
+    expect(error).toBeInstanceOf(AgentPlaytestError);
+    return error as AgentPlaytestError;
   }
   throw new Error("expected the command to fail");
 }
@@ -69,11 +69,11 @@ describe("act argument validation", () => {
   });
 
   it("explains that the project must be initialized before it looks for a session", async () => {
-    const bare = mkdtempSync(join(tmpdir(), "gameprob-bare-"));
+    const bare = mkdtempSync(join(tmpdir(), "agent-playtest-bare-"));
     try {
       const error = await expectFailure(() => runAct("step", ["10"], { project: bare }));
       expect(error.code).toBe("PROJECT_NOT_INITIALIZED");
-      expect(error.hint).toContain("gameprob init");
+      expect(error.hint).toContain("agent-playtest init");
     } finally {
       rmSync(bare, { recursive: true, force: true });
     }
@@ -84,7 +84,7 @@ describe("capture argument validation", () => {
   it("insists on either --page or a subject", async () => {
     const error = await expectInvalid(() => runCapture(undefined, { project: root }));
     expect(error.message).toContain("--page");
-    expect(error.hint).toContain("gameprob capture --page");
+    expect(error.hint).toContain("agent-playtest capture --page");
   });
 
   it("rejects an unknown view and lists the supported ones", async () => {
@@ -96,7 +96,7 @@ describe("capture argument validation", () => {
   });
 
   it("stops at the missing workspace once the arguments are valid", async () => {
-    const bare = mkdtempSync(join(tmpdir(), "gameprob-bare-capture-"));
+    const bare = mkdtempSync(join(tmpdir(), "agent-playtest-bare-capture-"));
     try {
       const error = await expectFailure(() => runCapture(undefined, { project: bare, page: true }));
 

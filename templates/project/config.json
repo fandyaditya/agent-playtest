@@ -17,6 +17,6 @@
     "idleTimeoutMs": 1800000
   },
   "output": {
-    "directory": ".gameprob/output"
+    "directory": ".agent-playtest/output"
   }
 }

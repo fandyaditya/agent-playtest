@@ -8,24 +8,27 @@ import { DEFAULT_CONFIG, parseConfigFile, resolveConfig } from "../../src/shared
 let scratch = "";
 
 beforeEach(() => {
-  scratch = mkdtempSync(join(tmpdir(), "gameprob-config-"));
-  process.env.GAMEPROB_HOME = join(scratch, "home");
+  scratch = mkdtempSync(join(tmpdir(), "agent-playtest-config-"));
+  process.env.AGENT_PLAYTEST_HOME = join(scratch, "home");
 });
 
 afterEach(() => {
   rmSync(scratch, { recursive: true, force: true });
-  delete process.env.GAMEPROB_HOME;
-  delete process.env.GAMEPROB_CHROMIUM_PATH;
+  delete process.env.AGENT_PLAYTEST_HOME;
+  delete process.env.AGENT_PLAYTEST_CHROMIUM_PATH;
 });
 
 function writeProjectConfig(projectRoot: string, value: unknown): void {
-  mkdirSync(join(projectRoot, ".gameprob"), { recursive: true });
-  writeFileSync(join(projectRoot, ".gameprob", "config.json"), JSON.stringify(value));
+  mkdirSync(join(projectRoot, ".agent-playtest"), { recursive: true });
+  writeFileSync(join(projectRoot, ".agent-playtest", "config.json"), JSON.stringify(value));
 }
 
 function writeUserConfig(value: unknown): void {
-  mkdirSync(process.env.GAMEPROB_HOME as string, { recursive: true });
-  writeFileSync(join(process.env.GAMEPROB_HOME as string, "config.json"), JSON.stringify(value));
+  mkdirSync(process.env.AGENT_PLAYTEST_HOME as string, { recursive: true });
+  writeFileSync(
+    join(process.env.AGENT_PLAYTEST_HOME as string, "config.json"),
+    JSON.stringify(value),
+  );
 }
 
 describe("config precedence", () => {
@@ -74,7 +77,8 @@ describe("config validation", () => {
   it("rejects unknown keys instead of silently ignoring them", () => {
     const parsed = parseConfigFile({ game: { url: "x", typo: 1 } }, "config.json");
     expect(parsed.ok).toBe(false);
-    if (!parsed.ok) expect(parsed.message).toContain("config.json is not a valid GameProb config");
+    if (!parsed.ok)
+      expect(parsed.message).toContain("config.json is not a valid Agent Playtest config");
   });
 
   it("rejects out-of-range viewports and idle timeouts", () => {
@@ -98,20 +102,20 @@ describe("loadProjectConfig", () => {
     const projectRoot = join(scratch, "game");
     mkdirSync(projectRoot, { recursive: true });
     writeUserConfig({ browser: { backend: "chromium" } });
-    writeProjectConfig(projectRoot, { game: { url: "http://127.0.0.1:5199/?gameprob=1" } });
+    writeProjectConfig(projectRoot, { game: { url: "http://127.0.0.1:5199/?agent-playtest=1" } });
 
     const config = loadProjectConfig(projectRoot);
 
-    expect(config.game.url).toBe("http://127.0.0.1:5199/?gameprob=1");
+    expect(config.game.url).toBe("http://127.0.0.1:5199/?agent-playtest=1");
     expect(config.browser.backend).toBe("chromium");
     expect(config.project.name).toBe("game");
   });
 
-  it("treats GAMEPROB_CHROMIUM_PATH as an explicit browser override", () => {
+  it("treats AGENT_PLAYTEST_CHROMIUM_PATH as an explicit browser override", () => {
     const projectRoot = join(scratch, "game");
     mkdirSync(projectRoot, { recursive: true });
     writeProjectConfig(projectRoot, { browser: { executablePath: "/usr/bin/other" } });
-    process.env.GAMEPROB_CHROMIUM_PATH = "/usr/bin/chromium";
+    process.env.AGENT_PLAYTEST_CHROMIUM_PATH = "/usr/bin/chromium";
 
     expect(loadProjectConfig(projectRoot).browser.executablePath).toBe("/usr/bin/chromium");
   });
@@ -126,8 +130,8 @@ describe("loadProjectConfig", () => {
 
   it("reports malformed JSON as CONFIG_INVALID", () => {
     const projectRoot = join(scratch, "game");
-    mkdirSync(join(projectRoot, ".gameprob"), { recursive: true });
-    writeFileSync(join(projectRoot, ".gameprob", "config.json"), "{ not json");
+    mkdirSync(join(projectRoot, ".agent-playtest"), { recursive: true });
+    writeFileSync(join(projectRoot, ".agent-playtest", "config.json"), "{ not json");
 
     expect(() => loadProjectConfig(projectRoot)).toThrowError(/not valid JSON/);
   });

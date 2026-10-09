@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "project": {
-    "name": "gameprob-example-spinner",
+    "name": "agent-playtest-example-spinner",
     "engineHint": "three"
   },
   "game": {
-    "url": "http://127.0.0.1:5199/?gameprob=1"
+    "url": "http://127.0.0.1:5199/?agent-playtest=1"
   },
   "browser": {
     "headless": true,
@@ -17,6 +17,6 @@
     "idleTimeoutMs": 1800000
   },
   "output": {
-    "directory": ".gameprob/output"
+    "directory": ".agent-playtest/output"
   }
 }

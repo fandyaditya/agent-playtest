@@ -1,5 +1,5 @@
 /**
- * `gameprob skills get core` — the version-matched agent guide.
+ * `agent-playtest skills get core` — the version-matched agent guide.
  *
  * Reads the guide bundled with the *installed* package so the documented CLI
  * surface always matches the shipped one. Works with no browser, daemon or game.
@@ -7,7 +7,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { GameProbError } from "../../shared/errors.ts";
+import { AgentPlaytestError } from "../../shared/errors.ts";
 import { packageRoot, packageVersion } from "../../shared/paths.ts";
 
 export interface SkillsResult {
@@ -31,10 +31,10 @@ function readSkillData(file: string): string {
   try {
     return readFileSync(path, "utf8");
   } catch (error) {
-    throw new GameProbError({
+    throw new AgentPlaytestError({
       code: "INTERNAL_ERROR",
       message: `Bundled skill data is missing: ${path}`,
-      hint: "The npm package was packed without skill-data. Reinstall gameprob.",
+      hint: "The npm package was packed without skill-data. Reinstall agent-playtest.",
       cause: error,
     });
   }

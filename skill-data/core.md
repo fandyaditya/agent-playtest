@@ -1,44 +1,44 @@
-# GameProb core guide (v{{VERSION}})
+# Agent Playtest core guide (v{{VERSION}})
 
-GameProb is a **local CLI** for inspecting, interacting with and testing 2D/3D
-browser games. It is used *by* coding agents: GameProb contains no AI model, no
+Agent Playtest is a **local CLI** for inspecting, interacting with and testing 2D/3D
+browser games. It is used *by* coding agents: Agent Playtest contains no AI model, no
 cloud service and no autonomous loop.
 
-- Machine runtime: `~/.gameprob/` (sessions, logs)
-- Project workspace: `<project>/.gameprob/` (config, bridge, tests, bugs, progress)
+- Machine runtime: `~/.agent-playtest/` (sessions, logs)
+- Project workspace: `<project>/.agent-playtest/` (config, bridge, tests, bugs, progress)
 - Scene refs: `@g1`, `@g2`, … — session-local, never durable test identifiers
 
-Run `gameprob skills get core --full` for the reference and troubleshooting
+Run `agent-playtest skills get core --full` for the reference and troubleshooting
 sections.
 
 ## Start here
 
 ```bash
-gameprob init                     # create/refresh the project workspace
-gameprob skills get core          # this guide, for the installed version
-gameprob open http://127.0.0.1:5173/?gameprob=1
-gameprob snapshot
-gameprob inspect @g1
-gameprob capture @g1 --views front,back,left,right
-gameprob run                      # run .gameprob/tests/**/*.spec.ts
-gameprob close
+agent-playtest init                     # create/refresh the project workspace
+agent-playtest skills get core          # this guide, for the installed version
+agent-playtest open http://127.0.0.1:5173/?agent-playtest=1
+agent-playtest snapshot
+agent-playtest inspect @g1
+agent-playtest capture @g1 --views front,back,left,right
+agent-playtest run                      # run .agent-playtest/tests/**/*.spec.ts
+agent-playtest close
 ```
 
-Read `.gameprob/AGENTS.md` when it exists: it describes this project's
+Read `.agent-playtest/AGENTS.md` when it exists: it describes this project's
 integration and where tests, bugs and progress notes belong.
 
 ## Commands
 
 ```
-gameprob init [--project <dir>] [--link-agents]
-gameprob open [url] [--headed] [--allow-remote] [--json]
-gameprob snapshot [--depth N] [--limit N] [--delta] [--json]
-gameprob inspect <@ref|selector> [--details] [--json]
-gameprob act <keydown|keyup|press|click|step> [args] [--json]
-gameprob capture [@ref|selector] [--page] [--views ...] [--out <path>] [--overwrite] [--json]
-gameprob run [spec-or-directory] [--workers N] [--json]
-gameprob close [--json]
-gameprob skills get core [--full]
+agent-playtest init [--project <dir>] [--link-agents]
+agent-playtest open [url] [--headed] [--allow-remote] [--json]
+agent-playtest snapshot [--depth N] [--limit N] [--delta] [--json]
+agent-playtest inspect <@ref|selector> [--details] [--json]
+agent-playtest act <keydown|keyup|press|click|step> [args] [--json]
+agent-playtest capture [@ref|selector] [--page] [--views ...] [--out <path>] [--overwrite] [--json]
+agent-playtest run [spec-or-directory] [--workers N] [--json]
+agent-playtest close [--json]
+agent-playtest skills get core [--full]
 ```
 
 `--json` prints one stable envelope on stdout for every data-returning command.
@@ -46,7 +46,7 @@ Without it, human text goes to stdout and warnings/diagnostics to stderr.
 
 ### init
 
-Idempotent and non-destructive. Creates `.gameprob/{AGENTS.md,config.json,bridge.ts,progress.md,.gitignore}`
+Idempotent and non-destructive. Creates `.agent-playtest/{AGENTS.md,config.json,bridge.ts,progress.md,.gitignore}`
 plus `tests/` and `bugs/`. It never edits game source, never overwrites your
 files, and never runs package scripts. `--link-agents` appends one short
 reference to the project root `AGENTS.md` (only if it is not already there).
@@ -70,7 +70,7 @@ counts and structural warnings. Truncation is always reported (`truncated`,
 previous snapshot of the same session; if there is no baseline it returns a full
 snapshot with `mode: "full"`.
 
-Without a bridge, `snapshot` fails with `CAPABILITY_UNAVAILABLE`. GameProb will
+Without a bridge, `snapshot` fails with `CAPABILITY_UNAVAILABLE`. Agent Playtest will
 not fabricate a scene tree from the DOM.
 
 ### inspect
@@ -81,7 +81,7 @@ texture summaries, bone names and renderer statistics.
 
 Selectors, in order of preference:
 
-1. `gameprob:id=main-hero` — persistent; comes from `object.userData.gameprob.id`
+1. `agent-playtest:id=main-hero` — persistent; comes from `object.userData.agentPlaytest.id`
 2. `name:Hero` — only when the name is unique
 3. `type:SkinnedMesh` — first match, with a warning
 4. `@g1` — session-local; **never** use it in a saved test
@@ -91,11 +91,11 @@ Stale refs fail with `STALE_REF`; run `snapshot` again.
 ### act
 
 ```bash
-gameprob act keydown ArrowRight
-gameprob act keyup ArrowRight
-gameprob act press Space
-gameprob act click 400 280
-gameprob act step 120
+agent-playtest act keydown ArrowRight
+agent-playtest act keyup ArrowRight
+agent-playtest act press Space
+agent-playtest act click 400 280
+agent-playtest act step 120
 ```
 
 `keydown`/`keyup`/`press`/`click` are real Playwright browser input; `click`
@@ -107,9 +107,9 @@ fails with `CAPABILITY_UNAVAILABLE` listing exactly what is missing.
 ### capture
 
 ```bash
-gameprob capture --page --out .gameprob/output/page.png
-gameprob capture @g2 --out .gameprob/output/hero.png
-gameprob capture @g2 --views front,back,left,right
+agent-playtest capture --page --out .agent-playtest/output/page.png
+agent-playtest capture @g2 --out .agent-playtest/output/hero.png
+agent-playtest capture @g2 --views front,back,left,right
 ```
 
 Page capture works without a bridge. Object capture requires scene, camera and
@@ -120,26 +120,26 @@ next to the PNGs. `--overwrite` is required to replace an existing file.
 
 ### run
 
-Executes `.gameprob/tests/**/*.spec.ts` with Playwright Test in **isolated
+Executes `.agent-playtest/tests/**/*.spec.ts` with Playwright Test in **isolated
 contexts** — never in the daemon's interactive page. Default `workers=1` for GPU
-predictability. Evidence goes to `.gameprob/output/<run-id>/`. A failing
+predictability. Evidence goes to `.agent-playtest/output/<run-id>/`. A failing
 assertion, no matching tests, or an unrunnable configuration all exit non-zero.
 `run` never calls an AI model.
 
 ## Writing a test
 
 ```ts
-import { test, expect } from "gameprob/test";
+import { test, expect } from "agent-playtest/test";
 
 test("hero is discoverable", async ({ game }) => {
   const snapshot = await game.snapshot();
-  const hero = snapshot.objects.find((o) => o.selector === "gameprob:id=main-hero");
+  const hero = snapshot.objects.find((o) => o.selector === "agent-playtest:id=main-hero");
   expect(hero).toBeDefined();
 
-  const inspected = await game.inspect("gameprob:id=main-hero");
+  const inspected = await game.inspect("agent-playtest:id=main-hero");
   expect(inspected.visible).toBe(true);
 
-  await game.capture({ selector: "gameprob:id=main-hero", name: "hero-front" });
+  await game.capture({ selector: "agent-playtest:id=main-hero", name: "hero-front" });
 });
 ```
 
@@ -154,7 +154,7 @@ Capability-dependent methods (`reset`, `step`, `state`, `action`) throw a typed
 |---|---|---|
 | `INVALID_ARGUMENT` | 2 | Flag or argument invalid |
 | `CONFIG_INVALID` | 2 | Config parse/validation failure |
-| `PROJECT_NOT_INITIALIZED` | 2 | Missing `.gameprob/` workspace |
+| `PROJECT_NOT_INITIALIZED` | 2 | Missing `.agent-playtest/` workspace |
 | `SESSION_NOT_FOUND` | 3 | No active browser session |
 | `BROWSER_LAUNCH_FAILED` | 3 | Chromium could not launch |
 | `NAVIGATION_FAILED` | 3 | Navigation/timeout |

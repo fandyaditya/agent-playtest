@@ -27,7 +27,7 @@ describe("CLI contract against a real project", () => {
     const data = result.json?.data as { content?: string; version?: string } | undefined;
 
     expect(result.code).toBe(0);
-    expect(data?.content).toContain("gameprob snapshot");
+    expect(data?.content).toContain("agent-playtest snapshot");
     expect(data?.content).toContain("| `STALE_REF` | 4 |");
     expect(data?.version).toMatch(/^\d+\.\d+\.\d+/);
   });
@@ -41,14 +41,14 @@ describe("CLI contract against a real project", () => {
     expect(data?.content?.length).toBeGreaterThan(5_000);
   });
 
-  it("refuses to guess a project that has no .gameprob workspace", async () => {
-    const bare = mkdtempSync(join(tmpdir(), "gameprob-it-bare-"));
+  it("refuses to guess a project that has no .agent-playtest workspace", async () => {
+    const bare = mkdtempSync(join(tmpdir(), "agent-playtest-it-bare-"));
     try {
       const result = await runCli(["snapshot", "--json"], { project: bare, timeoutMs: 30_000 });
       expect(result.code).toBe(2);
       expect(errorOf(result).code).toBe("PROJECT_NOT_INITIALIZED");
-      expect(errorOf(result).hint).toContain("gameprob init");
-      expect(existsSync(join(bare, ".gameprob"))).toBe(false);
+      expect(errorOf(result).hint).toContain("agent-playtest init");
+      expect(existsSync(join(bare, ".agent-playtest"))).toBe(false);
     } finally {
       rmSync(bare, { recursive: true, force: true });
     }
@@ -70,12 +70,12 @@ describe("CLI contract against a real project", () => {
   it("keeps warnings on stderr and data on stdout in human mode", async () => {
     const result = await runCli(["skills", "get", "core"], { timeoutMs: 30_000 });
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain("gameprob capture");
+    expect(result.stdout).toContain("agent-playtest capture");
     expect(result.stdout.trim().startsWith("{")).toBe(false);
   });
 
   it("exposes the example project's committed workspace", () => {
-    expect(existsSync(join(EXAMPLE_ROOT, ".gameprob", "config.json"))).toBe(true);
-    expect(existsSync(join(EXAMPLE_ROOT, ".gameprob", "bridge.ts"))).toBe(true);
+    expect(existsSync(join(EXAMPLE_ROOT, ".agent-playtest", "config.json"))).toBe(true);
+    expect(existsSync(join(EXAMPLE_ROOT, ".agent-playtest", "bridge.ts"))).toBe(true);
   });
 });

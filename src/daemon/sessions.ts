@@ -13,7 +13,7 @@ import {
   outputRootFor,
 } from "../browser/driver.ts";
 import { type BrowserSession, launchBrowser } from "../browser/playwright.ts";
-import { GameProbError } from "../shared/errors.ts";
+import { AgentPlaytestError } from "../shared/errors.ts";
 import type { ResolvedConfig } from "../shared/schemas.ts";
 import type {
   ActionResult,
@@ -79,7 +79,7 @@ export class ProjectSession {
     if (params.headed === true) {
       if (this.#browser) {
         warnings.push(
-          `--headed was ignored: the browser for this project is already running (headless=${this.#context.config.browser.headless}). Run \`gameprob close\` and open again to change it.`,
+          `--headed was ignored: the browser for this project is already running (headless=${this.#context.config.browser.headless}). Run \`agent-playtest close\` and open again to change it.`,
         );
       } else {
         this.#context.config.browser.headless = false;
@@ -89,10 +89,10 @@ export class ProjectSession {
     // cost a Chromium start, and must never reach the network.
     const raw = params.url ?? this.#context.config.game.url;
     if (!raw) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "INVALID_ARGUMENT",
-        message: "No URL was provided and .gameprob/config.json has no game.url.",
-        hint: "Run: gameprob open http://127.0.0.1:5173/?gameprob=1",
+        message: "No URL was provided and .agent-playtest/config.json has no game.url.",
+        hint: "Run: agent-playtest open http://127.0.0.1:5173/?agent-playtest=1",
       });
     }
     const target = assertAllowedTarget(raw, params.allowRemote === true);
@@ -168,10 +168,10 @@ export class ProjectSession {
 
   #requireDriver(): BrowserGameDriver {
     if (!this.#driver) {
-      throw new GameProbError({
+      throw new AgentPlaytestError({
         code: "SESSION_NOT_FOUND",
         message: "No browser session is open for this project.",
-        hint: "Run `gameprob open <url>` first.",
+        hint: "Run `agent-playtest open <url>` first.",
       });
     }
     return this.#driver;
