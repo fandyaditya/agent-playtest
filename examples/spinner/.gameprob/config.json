@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "gameprob-example-spinner",
+    "engineHint": "three"
+  },
+  "game": {
+    "url": "http://127.0.0.1:5199/?gameprob=1"
+  },
+  "browser": {
+    "headless": true,
+    "backend": "chromium-shell",
+    "viewport": { "width": 960, "height": 540 },
+    "deviceScaleFactor": 1
+  },
+  "session": {
+    "idleTimeoutMs": 1800000
+  },
+  "output": {
+    "directory": ".gameprob/output"
+  }
+}

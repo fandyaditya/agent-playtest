@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameProb example: spinner</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b0f19;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      .hud {
+        position: fixed;
+        inset: 12px auto auto 12px;
+        padding: 8px 12px;
+        border: 1px solid rgb(255 255 255 / 12%);
+        border-radius: 10px;
+        background: rgb(15 20 32 / 72%);
+        color: #cbd5e1;
+        font-size: 12px;
+        line-height: 1.5;
+        backdrop-filter: blur(8px);
+      }
+      .hud strong {
+        color: #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <div class="hud">
+      <strong>GameProb example</strong><br />
+      ← / → move the hero · the wall stops it at x = 1.52
+    </div>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three/three.module.js",
+          "gameprob/bridge": "/vendor/gameprob/bridge.js"
+        }
+      }
+    </script>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

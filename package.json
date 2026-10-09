@@ -1,0 +1,68 @@
+{
+  "name": "gameprob",
+  "version": "0.1.0",
+  "description": "Local, agent-friendly CLI for inspecting, interacting with, and testing 2D/3D browser games.",
+  "keywords": [
+    "ai-agent",
+    "browser-game",
+    "cli",
+    "playwright",
+    "testing",
+    "three.js"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "gameprob": "./dist/cli.js"
+  },
+  "exports": {
+    "./bridge": {
+      "types": "./dist/bridge.d.ts",
+      "default": "./dist/bridge.js"
+    },
+    "./test": {
+      "types": "./dist/test.d.ts",
+      "default": "./dist/test.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "skill-data",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "node scripts/e2e.mjs",
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify:install": "node scripts/verify-install.mjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "@playwright/test": "1.64.0",
+    "commander": "^15.0.0",
+    "playwright": "1.64.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^24.19.1",
+    "@types/three": "^0.186.0",
+    "three": "^0.186.1",
+    "tsdown": "^0.23.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

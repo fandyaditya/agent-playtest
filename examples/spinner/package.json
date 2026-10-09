@@ -1,0 +1,13 @@
+{
+  "name": "gameprob-example-spinner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal real Three.js game used to exercise GameProb end to end.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "devDependencies": {
+    "gameprob": "workspace:*"
+  }
+}
