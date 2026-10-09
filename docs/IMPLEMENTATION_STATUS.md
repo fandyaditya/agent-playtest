@@ -2,7 +2,7 @@
 
 ## Last verified state
 
-- **Revision**: `9e7bc21` on `main`, pushed to
+- **Revision**: `20c1b12` on `main`, pushed to
   `git@github.com:fandyaditya/agent-playtest.git`
 - **Environment**: Alpine Linux 3.24.2 (musl), Node v24.18.1, pnpm 10.34.6,
   system Chromium 152 with `chromium-swiftshader`, **1 visible CPU** on a shared
